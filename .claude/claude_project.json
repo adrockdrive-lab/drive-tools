@@ -1,0 +1,52 @@
+{
+  "name": "DRIVING-ZONE-MISSION",
+  "description": "드라이빙존 미션 페이백 시스템 - Next.js + Supabase",
+  "version": "1.0.0",
+  "mcpServers": {
+    "supabase": {
+      "command": "node",
+      "args": [
+        "./node_modules/@supabase/mcp-server-supabase/dist/index.js",
+        "--access-token",
+        "sbp_2f1d3e8277afa679e7aaf6263db8987d1f7c0fad",
+        "--project-ref",
+        "rhofpgbzunxgmcjcoxex"
+      ],
+      "description": "Supabase 데이터베이스 관리 및 쿼리 도구"
+    },
+    "filesystem": {
+      "command": "node",
+      "args": [
+        "./node_modules/@modelcontextprotocol/server-filesystem/dist/index.js"
+      ],
+      "config": {
+        "allowedDirectories": [
+          "./src",
+          "./public", 
+          "./.claude",
+          "./database-setup.sql",
+          "./README.md",
+          "./todo.md"
+        ]
+      },
+      "description": "프로젝트 파일시스템 접근 도구"
+    }
+  },
+  "envFile": ".env.local",
+  "requiredEnvVars": [
+    "NEXT_PUBLIC_SUPABASE_URL",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+    "SUPABASE_SERVICE_ROLE_KEY"
+  ],
+  "projectStructure": {
+    "src": "Source code directory",
+    "database-setup.sql": "Database schema and initial data",
+    "README.md": "Project documentation",
+    "todo.md": "Development tasks and TODO items"
+  },
+  "instructions": {
+    "database": "Use Supabase MCP for database operations. Schema is defined in database-setup.sql",
+    "development": "Use npm run dev to start development server on port 3000/3001",
+    "testing": "Access /test page to verify database connection and environment setup"
+  }
+}
