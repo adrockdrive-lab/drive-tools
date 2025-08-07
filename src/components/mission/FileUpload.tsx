@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { supabase } from '@/lib/supabase';
-import { toast } from 'sonner';
-import { Upload, FileIcon, X, CheckCircle, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { AlertTriangle, CheckCircle, FileIcon, Upload, X } from 'lucide-react';
+import Image from 'next/image';
+import { useCallback, useRef, useState } from 'react';
+import { toast } from 'sonner';
 
 interface FileUploadProps {
   accept: string;
@@ -37,7 +38,7 @@ export function FileUpload({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragOver, setIsDragOver] = useState(false);
 
-  const validateFile = (file: File): string | null => {
+  const validateFile = useCallback((file: File): string | null => {
     // Check file size
     if (file.size > maxSize) {
       return `파일 크기가 너무 큽니다. 최대 ${(maxSize / 1024 / 1024).toFixed(1)}MB까지 업로드 가능합니다.`;
@@ -63,19 +64,19 @@ export function FileUpload({
     }
 
     return null;
-  };
+  }, [maxSize, accept]);
 
   const createFilePreview = (file: File): FileWithPreview => {
     const fileWithPreview = file as FileWithPreview;
-    
+
     if (file.type.startsWith('image/')) {
       fileWithPreview.preview = URL.createObjectURL(file);
     }
-    
+
     return fileWithPreview;
   };
 
-  const handleFileSelect = (file: File) => {
+  const handleFileSelect = useCallback((file: File) => {
     setError(null);
     setIsComplete(false);
     setUploadProgress(0);
@@ -88,7 +89,7 @@ export function FileUpload({
 
     const fileWithPreview = createFilePreview(file);
     setSelectedFile(fileWithPreview);
-  };
+  }, [validateFile]);
 
   const uploadToSupabase = async (file: File): Promise<string> => {
     const fileExt = file.name.split('.').pop();
@@ -100,11 +101,7 @@ export function FileUpload({
       .from('mission-proofs')
       .upload(filePath, file, {
         cacheControl: '3600',
-        upsert: false,
-        onUploadProgress: (progress) => {
-          const percentage = (progress.loaded / progress.total) * 100;
-          setUploadProgress(Math.round(percentage));
-        }
+        upsert: false
       });
 
     if (error) {
@@ -151,14 +148,14 @@ export function FileUpload({
   const handleDrop = useCallback((event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     setIsDragOver(false);
-    
+
     if (disabled) return;
 
     const file = event.dataTransfer.files?.[0];
     if (file) {
       handleFileSelect(file);
     }
-  }, [disabled]);
+  }, [disabled, handleFileSelect]);
 
   const handleDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
@@ -215,7 +212,7 @@ export function FileUpload({
             isDragOver && !disabled
               ? 'border-blue-400 bg-blue-50 dark:bg-blue-950/20'
               : 'border-gray-300 dark:border-gray-600',
-            disabled 
+            disabled
               ? 'opacity-50 cursor-not-allowed bg-gray-50 dark:bg-gray-800/50'
               : 'cursor-pointer hover:border-gray-400 dark:hover:border-gray-500'
           )}
@@ -253,9 +250,11 @@ export function FileUpload({
             {/* File preview */}
             <div className="flex-shrink-0">
               {selectedFile.preview ? (
-                <img
+                <Image
                   src={selectedFile.preview}
                   alt="Preview"
+                  width={80}
+                  height={80}
                   className="w-20 h-20 object-cover rounded-lg border"
                 />
               ) : (
@@ -273,7 +272,7 @@ export function FileUpload({
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 {formatFileSize(selectedFile.size)}
               </p>
-              
+
               {/* Status */}
               {isComplete ? (
                 <div className="flex items-center space-x-1 mt-1">
@@ -294,7 +293,7 @@ export function FileUpload({
                   <Progress value={uploadProgress} className="h-2" />
                 </div>
               ) : null}
-              
+
               {/* Error message */}
               {error && (
                 <p className="text-sm text-red-600 dark:text-red-400 mt-1">{error}</p>

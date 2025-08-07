@@ -1,8 +1,8 @@
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
-import { useState, useEffect } from 'react';
-import { ProgressRing } from './ProgressRing';
+import { AnimatePresence, motion } from 'framer-motion';
+import { useEffect, useState } from 'react';
+
 import { ParticleSystem } from './ParticleSystem';
 
 interface LevelSystemProps {
@@ -40,7 +40,7 @@ const getLevelInfo = (level: number) => {
 
 export function LevelBadge({ level, size = 'md', showRing = true, animated = true }: LevelBadgeProps) {
   const levelInfo = getLevelInfo(level);
-  
+
   const sizeConfig = {
     sm: { container: 'w-12 h-12', text: 'text-xs', icon: 'text-sm' },
     md: { container: 'w-16 h-16', text: 'text-sm', icon: 'text-lg' },
@@ -50,18 +50,18 @@ export function LevelBadge({ level, size = 'md', showRing = true, animated = tru
   const config = sizeConfig[size];
 
   return (
-    <motion.div 
+    <motion.div
       className="relative inline-flex items-center justify-center"
       initial={animated ? { scale: 0.8, opacity: 0 } : false}
       animate={{ scale: 1, opacity: 1 }}
       transition={{ type: "spring", stiffness: 300, damping: 25 }}
     >
       {showRing && (
-        <div 
+        <div
           className={`${config.container} rounded-full border-3 border-opacity-30 flex items-center justify-center`}
           style={{ borderColor: levelInfo.color }}
         >
-          <div 
+          <div
             className="w-full h-full rounded-full flex flex-col items-center justify-center text-white font-bold"
             style={{ backgroundColor: levelInfo.color }}
           >
@@ -85,7 +85,7 @@ export function LevelSystem({
 }: LevelSystemProps) {
   const [previousLevel, setPreviousLevel] = useState(currentLevel);
   const [showLevelUpEffect, setShowLevelUpEffect] = useState(false);
-  
+
   const progressPercentage = totalExp > 0 ? (currentExp / expToNext) * 100 : 0;
   const levelInfo = getLevelInfo(currentLevel);
 
@@ -93,11 +93,11 @@ export function LevelSystem({
     if (currentLevel > previousLevel && showLevelUpAnimation) {
       setShowLevelUpEffect(true);
       onLevelUp?.(currentLevel);
-      
+
       const timer = setTimeout(() => {
         setShowLevelUpEffect(false);
       }, 3000);
-      
+
       return () => clearTimeout(timer);
     }
     setPreviousLevel(currentLevel);
@@ -106,7 +106,7 @@ export function LevelSystem({
   return (
     <div className={`relative ${className}`}>
       {/* Level Up Particles */}
-      <ParticleSystem 
+      <ParticleSystem
         trigger={showLevelUpEffect}
         type="levelUp"
         intensity="high"
@@ -116,7 +116,7 @@ export function LevelSystem({
       <div className="flex items-center space-x-4">
         {/* Level Badge */}
         <LevelBadge level={currentLevel} size="lg" />
-        
+
         {/* Level Progress */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between mb-1">
@@ -137,7 +137,7 @@ export function LevelSystem({
               </p>
             </div>
           </div>
-          
+
           {/* Progress Bar */}
           <div className="relative">
             <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
@@ -152,7 +152,7 @@ export function LevelSystem({
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full animate-shimmer" />
               </motion.div>
             </div>
-            
+
             {/* XP gained indicator */}
             <AnimatePresence>
               {showLevelUpEffect && (
@@ -196,7 +196,7 @@ export function LevelSystem({
               >
                 <LevelBadge level={currentLevel} size="lg" />
               </motion.div>
-              
+
               <motion.div
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}

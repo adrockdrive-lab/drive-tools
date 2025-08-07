@@ -1,16 +1,16 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { motion } from 'framer-motion'
-import { useAppStore } from '@/lib/store'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { toast } from 'sonner'
+import { useAppStore } from '@/lib/store'
+import { motion } from 'framer-motion'
+import { ArrowRight, Coins, Phone, Target, Trophy, User } from 'lucide-react'
 import Link from 'next/link'
-import { Phone, ArrowRight, User, Coins, Trophy, Target } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -30,15 +30,14 @@ export default function LoginPage() {
       toast.error('휴대폰 번호를 입력해주세요.')
       return false
     }
-    
+
     // 휴대폰 번호 형식 검증
-    const phoneRegex = /^010-?\d{4}-?\d{4}$/
     const cleanPhone = phone.replace(/[^\d]/g, '')
     if (cleanPhone.length !== 11 || !cleanPhone.startsWith('010')) {
       toast.error('올바른 휴대폰 번호를 입력해주세요.')
       return false
     }
-    
+
     return true
   }
 
@@ -49,7 +48,7 @@ export default function LoginPage() {
     try {
       const formattedPhone = phone.replace(/[^\d]/g, '').replace(/(\d{3})(\d{4})(\d{4})/, '010-$2-$3')
       await login(formattedPhone)
-      
+
       toast.success('로그인 성공!')
       router.push('/dashboard')
     } catch (error) {
@@ -165,7 +164,7 @@ export default function LoginPage() {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
-                <Button 
+                <Button
                   onClick={handleLogin}
                   disabled={isLoading}
                   className="w-full h-12 text-lg bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 transition-all duration-300"
@@ -213,7 +212,7 @@ export default function LoginPage() {
 
               {/* 홈으로 돌아가기 */}
               <div className="text-center pt-2">
-                <Link 
+                <Link
                   href="/"
                   className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
                 >

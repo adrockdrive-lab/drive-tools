@@ -1,24 +1,19 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
 import { useAppStore } from '@/lib/store';
 import { supabase } from '@/lib/supabase';
+import type { MissionStatus, ProofData } from '@/types';
 import type { RealtimeChannel } from '@supabase/supabase-js';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
-interface ProgressUpdate {
-  missionId: number;
-  userId: string;
-  progress: number;
-  status: string;
-  timestamp: string;
-}
+
 
 interface UserActivity {
   id: string;
   userId: string;
   userName: string;
   action: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   timestamp: string;
 }
 
@@ -28,7 +23,124 @@ export function useRealtimeProgress() {
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const channelRef = useRef<RealtimeChannel | null>(null);
-  const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
+
+  // Handle progress updates
+  const handleProgressUpdate = useCallback((update: Record<string, unknown>) => {
+    const store = useAppStore.getState();
+
+    // Update the mission progress in the store
+    const updatedUserMission = {
+      id: update.id as string,
+      userId: update.user_id as string,
+      missionId: update.mission_id as number,
+      status: update.status as MissionStatus,
+      proofData: update.proof_data as ProofData | null,
+      completedAt: update.completed_at as string | null,
+      createdAt: update.created_at as string
+    };
+
+    store.updateUserMission(updatedUserMission);
+
+    // Trigger success animation if completed
+    if (update.status === 'completed' || update.status === 'verified') {
+      triggerSuccessNotification(update);
+    }
+  }, []);
+
+  // Handle payback updates
+  const handlePaybackUpdate = useCallback((update: Record<string, unknown>) => {
+    const store = useAppStore.getState();
+
+    // Reload payback data to get the latest total
+    store.loadPaybacks();
+
+    // Trigger payback notification
+    triggerPaybackNotification(update);
+  }, []);
+
+  // Handle user activity broadcasts
+  const handleUserActivity = useCallback((activity: UserActivity) => {
+    // Could be used to show social feed updates
+    console.log('Social activity:', activity);
+
+    // Trigger social proof notifications
+    if (activity.action.includes('completed') || activity.action.includes('received')) {
+      showSocialProofNotification(activity);
+    }
+  }, []);
+
+  // Trigger success notification
+  const triggerSuccessNotification = (update: Record<string, unknown>) => {
+    // Could trigger particle effects, sound, or push notifications
+    if ('Notification' in window && Notification.permission === 'granted') {
+      new Notification('미션 완료!', {
+        body: '미션이 성공적으로 완료되었습니다! 🎉',
+        icon: '/icon-192x192.png',
+        tag: `mission-${update.mission_id}`
+      });
+    }
+
+    // Haptic feedback on mobile
+    if (navigator.vibrate) {
+      navigator.vibrate([100, 50, 100]);
+    }
+  };
+
+  // Trigger payback notification
+  const triggerPaybackNotification = (update: Record<string, unknown>) => {
+    if ('Notification' in window && Notification.permission === 'granted') {
+      new Notification('페이백 적립!', {
+        body: `${(update.amount as number).toLocaleString()}원이 적립되었습니다! 💰`,
+        icon: '/icon-192x192.png',
+        tag: `payback-${update.id}`
+      });
+    }
+
+    // Haptic feedback
+    if (navigator.vibrate) {
+      navigator.vibrate([200, 100, 200]);
+    }
+  };
+
+  // Show social proof notification
+  const showSocialProofNotification = (activity: UserActivity) => {
+    // This could trigger toast notifications or update social feed
+    console.log('Social proof:', `${activity.userName} ${activity.action}`);
+  };
+
+  // Broadcast user activity (for social features)
+  const broadcastActivity = async (action: string, metadata?: Record<string, unknown>) => {
+    if (!channelRef.current || !user) return;
+
+    const activity: UserActivity = {
+      id: crypto.randomUUID(),
+      userId: user.id,
+      userName: user.name,
+      action,
+      metadata,
+      timestamp: new Date().toISOString()
+    };
+
+    try {
+      await channelRef.current.send({
+        type: 'broadcast',
+        event: 'user_activity',
+        payload: activity
+      });
+    } catch (error) {
+      console.error('Failed to broadcast activity:', error);
+    }
+  };
+
+  // Request notification permission
+  const requestNotificationPermission = async () => {
+    if ('Notification' in window && Notification.permission === 'default') {
+      const permission = await Notification.requestPermission();
+      return permission === 'granted';
+    }
+    return Notification.permission === 'granted';
+  };
 
   // Setup realtime subscription
   useEffect(() => {
@@ -74,7 +186,7 @@ export function useRealtimeProgress() {
           })
           .subscribe((status) => {
             console.log('Realtime connection status:', status);
-            
+
             if (status === 'SUBSCRIBED') {
               setIsConnected(true);
               setConnectionError(null);
@@ -120,7 +232,7 @@ export function useRealtimeProgress() {
 
       // Exponential backoff: 2s, 4s, 8s, max 30s
       const retryDelay = Math.min(2000 * Math.pow(2, Math.random()), 30000);
-      
+
       reconnectTimeoutRef.current = setTimeout(() => {
         console.log('🔄 Attempting to reconnect...');
         cleanup();
@@ -144,135 +256,18 @@ export function useRealtimeProgress() {
 
     // Cleanup on unmount
     return cleanup;
-  }, [isAuthenticated, user?.id]);
-
-  // Handle progress updates
-  const handleProgressUpdate = (update: any) => {
-    const store = useAppStore.getState();
-    
-    // Update the mission progress in the store
-    const updatedUserMission = {
-      id: update.id,
-      userId: update.user_id,
-      missionId: update.mission_id,
-      status: update.status,
-      proofData: update.proof_data,
-      completedAt: update.completed_at,
-      createdAt: update.created_at
-    };
-
-    store.updateUserMission(updatedUserMission);
-
-    // Trigger success animation if completed
-    if (update.status === 'completed' || update.status === 'verified') {
-      triggerSuccessNotification(update);
-    }
-  };
-
-  // Handle payback updates
-  const handlePaybackUpdate = (update: any) => {
-    const store = useAppStore.getState();
-    
-    // Reload payback data to get the latest total
-    store.loadPaybacks();
-
-    // Trigger payback notification
-    triggerPaybackNotification(update);
-  };
-
-  // Handle user activity broadcasts
-  const handleUserActivity = (activity: UserActivity) => {
-    // Could be used to show social feed updates
-    console.log('Social activity:', activity);
-    
-    // Trigger social proof notifications
-    if (activity.action.includes('completed') || activity.action.includes('received')) {
-      showSocialProofNotification(activity);
-    }
-  };
-
-  // Trigger success notification
-  const triggerSuccessNotification = (update: any) => {
-    // Could trigger particle effects, sound, or push notifications
-    if ('Notification' in window && Notification.permission === 'granted') {
-      new Notification('미션 완료!', {
-        body: '미션이 성공적으로 완료되었습니다! 🎉',
-        icon: '/icon-192x192.png',
-        tag: `mission-${update.mission_id}`
-      });
-    }
-
-    // Haptic feedback on mobile
-    if (navigator.vibrate) {
-      navigator.vibrate([100, 50, 100]);
-    }
-  };
-
-  // Trigger payback notification
-  const triggerPaybackNotification = (update: any) => {
-    if ('Notification' in window && Notification.permission === 'granted') {
-      new Notification('페이백 적립!', {
-        body: `${update.amount.toLocaleString()}원이 적립되었습니다! 💰`,
-        icon: '/icon-192x192.png',
-        tag: `payback-${update.id}`
-      });
-    }
-
-    // Haptic feedback
-    if (navigator.vibrate) {
-      navigator.vibrate([200, 100, 200]);
-    }
-  };
-
-  // Show social proof notification
-  const showSocialProofNotification = (activity: UserActivity) => {
-    // This could trigger toast notifications or update social feed
-    console.log('Social proof:', `${activity.userName} ${activity.action}`);
-  };
-
-  // Broadcast user activity (for social features)
-  const broadcastActivity = async (action: string, metadata?: Record<string, any>) => {
-    if (!channelRef.current || !user) return;
-
-    const activity: UserActivity = {
-      id: crypto.randomUUID(),
-      userId: user.id,
-      userName: user.name,
-      action,
-      metadata,
-      timestamp: new Date().toISOString()
-    };
-
-    try {
-      await channelRef.current.send({
-        type: 'broadcast',
-        event: 'user_activity',
-        payload: activity
-      });
-    } catch (error) {
-      console.error('Failed to broadcast activity:', error);
-    }
-  };
-
-  // Request notification permission
-  const requestNotificationPermission = async () => {
-    if ('Notification' in window && Notification.permission === 'default') {
-      const permission = await Notification.requestPermission();
-      return permission === 'granted';
-    }
-    return Notification.permission === 'granted';
-  };
+  }, [isAuthenticated, user?.id, handlePaybackUpdate, handleProgressUpdate, handleUserActivity, user]);
 
   return {
     // Connection status
     isConnected,
     connectionError,
     lastUpdate,
-    
+
     // Methods
     broadcastActivity,
     requestNotificationPermission,
-    
+
     // Connection info
     channelInfo: {
       channelName: channelRef.current?.topic || null,
@@ -289,10 +284,10 @@ export function useMissionProgress(missionId: number) {
 
   useEffect(() => {
     const userMission = userMissions.find(um => um.missionId === missionId);
-    
+
     if (userMission) {
       setStatus(userMission.status);
-      
+
       // Calculate progress percentage based on status
       const progressMap = {
         'pending': 0,
@@ -300,7 +295,7 @@ export function useMissionProgress(missionId: number) {
         'completed': 90,
         'verified': 100
       };
-      
+
       setProgress(progressMap[userMission.status as keyof typeof progressMap] || 0);
     } else {
       setStatus('pending');

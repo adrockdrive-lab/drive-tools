@@ -1,15 +1,17 @@
-import { create } from 'zustand'
-import { persist, createJSONStorage } from 'zustand/middleware'
-import { supabase } from './supabase'
-import type { 
-  User, 
-  Mission, 
-  UserMission, 
-  Payback, 
-  Referral,
-  AppState,
-  AppActions 
+import type {
+    AppActions,
+    AppState,
+    Mission,
+    MissionStatus,
+    Payback,
+    PaybackStatus,
+    Referral,
+    User,
+    UserMission
 } from '@/types'
+import { create } from 'zustand'
+import { createJSONStorage, persist } from 'zustand/middleware'
+import { supabase } from './supabase'
 
 type AppStore = AppState & AppActions & {
   loadMissions: () => Promise<void>
@@ -40,15 +42,15 @@ export const useAppStore = create<AppStore>()(
       // User Actions
       // ===============================================
       setUser: (user) => {
-        set({ 
-          user, 
-          isAuthenticated: !!user 
+        set({
+          user,
+          isAuthenticated: !!user
         })
       },
 
       login: async (phone) => {
         set({ isLoading: true, error: null })
-        
+
         try {
           const { data, error } = await supabase
             .from('users')
@@ -70,10 +72,10 @@ export const useAppStore = create<AppStore>()(
             updatedAt: data.updated_at
           }
 
-          set({ 
-            user, 
+          set({
+            user,
             isAuthenticated: true,
-            isLoading: false 
+            isLoading: false
           })
 
           // Load user's mission data
@@ -82,17 +84,17 @@ export const useAppStore = create<AppStore>()(
           await get().loadReferrals()
 
         } catch (error) {
-          set({ 
+          set({
             error: error instanceof Error ? error.message : 'Login failed',
-            isLoading: false 
+            isLoading: false
           })
           throw error
         }
       },
 
       logout: () => {
-        set({ 
-          user: null, 
+        set({
+          user: null,
           isAuthenticated: false,
           userMissions: [],
           paybacks: [],
@@ -136,14 +138,14 @@ export const useAppStore = create<AppStore>()(
             title: m.title,
             description: m.description,
             rewardAmount: m.reward_amount,
-            missionType: m.mission_type as any,
+            missionType: m.mission_type as Mission['missionType'],
             isActive: m.is_active,
             createdAt: m.created_at
           }))
 
           set({ missions })
         } catch (error) {
-          set({ 
+          set({
             error: error instanceof Error ? error.message : 'Failed to load missions'
           })
         }
@@ -166,7 +168,7 @@ export const useAppStore = create<AppStore>()(
             id: um.id,
             userId: um.user_id,
             missionId: um.mission_id,
-            status: um.status as any,
+            status: um.status as MissionStatus,
             proofData: um.proof_data,
             completedAt: um.completed_at,
             createdAt: um.created_at
@@ -191,7 +193,7 @@ export const useAppStore = create<AppStore>()(
         const total = paybacks
           .filter(p => p.status === 'paid')
           .reduce((sum, p) => sum + p.amount, 0)
-        
+
         set({ totalPayback: total })
       },
 
@@ -214,7 +216,7 @@ export const useAppStore = create<AppStore>()(
             userId: p.user_id,
             missionId: p.mission_id,
             amount: p.amount,
-            status: p.status as any,
+            status: p.status as PaybackStatus,
             paidAt: p.paid_at,
             createdAt: p.created_at
           }))
@@ -322,15 +324,15 @@ export const useAppStore = create<AppStore>()(
       initializeApp: async () => {
         const { isLoading } = get()
         if (isLoading) return // 이미 초기화 중이면 중복 실행 방지
-        
+
         set({ isLoading: true, error: null })
-        
+
         try {
           console.log('Loading missions...')
           // Load missions (public data)
           await get().loadMissions()
           console.log('Missions loaded successfully')
-          
+
           // If user is logged in, load their data
           const { user } = get()
           if (user) {
@@ -342,7 +344,7 @@ export const useAppStore = create<AppStore>()(
             ])
             console.log('User data loaded successfully')
           }
-          
+
           console.log('App initialization completed')
         } catch (error) {
           console.error('App initialization error:', error)
@@ -358,9 +360,9 @@ export const useAppStore = create<AppStore>()(
       name: 'driving-zone-storage',
       storage: createJSONStorage(() => localStorage),
       // Only persist user auth state, not all data
-      partialize: (state) => ({ 
-        user: state.user, 
-        isAuthenticated: state.isAuthenticated 
+      partialize: (state) => ({
+        user: state.user,
+        isAuthenticated: state.isAuthenticated
       })
     }
   )

@@ -1,15 +1,20 @@
 'use client'
 
-import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { fullDatabaseCheck } from '@/lib/test-db'
 import { checkEnvironmentSetup, getEnvironmentInstructions } from '@/lib/env-check'
+import { fullDatabaseCheck } from '@/lib/test-db'
+import { useEffect, useState } from 'react'
 
 export default function TestPage() {
   const [testResult, setTestResult] = useState<string>('')
   const [isLoading, setIsLoading] = useState(false)
-  const [envStatus, setEnvStatus] = useState<any>(null)
+  const [envStatus, setEnvStatus] = useState<{
+    isComplete: boolean;
+    status: string;
+    missing: string[];
+    placeholder: string[];
+  } | null>(null)
 
   useEffect(() => {
     const status = checkEnvironmentSetup()
@@ -19,31 +24,31 @@ export default function TestPage() {
   const runDatabaseTest = async () => {
     setIsLoading(true)
     setTestResult('Testing database connection...\n')
-    
+
     try {
       // Console 출력을 캡처하기 위한 설정
       const originalLog = console.log
       const originalError = console.error
       let output = ''
-      
+
       console.log = (...args) => {
         output += args.join(' ') + '\n'
         originalLog(...args)
       }
-      
+
       console.error = (...args) => {
         output += 'ERROR: ' + args.join(' ') + '\n'
         originalError(...args)
       }
-      
-      const result = await fullDatabaseCheck()
-      
+
+      await fullDatabaseCheck()
+
       // Console 원복
       console.log = originalLog
       console.error = originalError
-      
+
       setTestResult(output)
-      
+
     } catch (error) {
       setTestResult(`Error running database test: ${error}`)
     } finally {
@@ -100,7 +105,7 @@ export default function TestPage() {
               </details>
             </div>
           )}
-          
+
           {envStatus?.isComplete && (
             <div className="bg-green-50 p-4 rounded-lg border border-green-200">
               <h4 className="font-semibold text-green-900 mb-2">✅ 환경변수 설정 완료</h4>
@@ -121,20 +126,20 @@ export default function TestPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Button 
+          <Button
             onClick={runDatabaseTest}
             disabled={isLoading || !envStatus?.isComplete}
             className="w-full"
           >
             {isLoading ? 'Testing...' : 'Run Database Test'}
           </Button>
-          
+
           {!envStatus?.isComplete && (
             <p className="text-sm text-gray-500 text-center">
               환경변수를 먼저 설정해주세요
             </p>
           )}
-          
+
           {testResult && (
             <div className="bg-gray-50 p-4 rounded-lg">
               <h3 className="font-semibold mb-2">Test Results:</h3>
@@ -143,7 +148,7 @@ export default function TestPage() {
               </pre>
             </div>
           )}
-          
+
           <div className="mt-6 p-4 bg-blue-50 rounded-lg">
             <h3 className="font-semibold text-blue-900 mb-2">📋 데이터베이스 설정 방법:</h3>
             <ol className="list-decimal list-inside text-sm text-blue-800 space-y-1">
@@ -152,7 +157,7 @@ export default function TestPage() {
               <li>Go to SQL Editor</li>
               <li>Copy and paste the content from <code>database-setup.sql</code></li>
               <li>Execute the script</li>
-              <li>Return here and click "Run Database Test"</li>
+              <li>Return here and click &quot;Run Database Test&quot;</li>
             </ol>
             <p className="text-xs text-blue-600 mt-2">
               자세한 설정 방법은 <code>SUPABASE_SETUP.md</code> 파일을 참고하세요.
@@ -168,26 +173,26 @@ export default function TestPage() {
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-3">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => window.open('/', '_blank')}
             >
               🏠 홈페이지
             </Button>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => window.open('/register', '_blank')}
             >
               👤 회원가입 테스트
             </Button>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => window.open('/dashboard', '_blank')}
             >
               📊 대시보드 (로그인 필요)
             </Button>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => window.open('https://supabase.com/dashboard', '_blank')}
             >
               🔗 Supabase 콘솔

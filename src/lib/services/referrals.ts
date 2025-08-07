@@ -1,6 +1,14 @@
 import { supabase } from '@/lib/supabase'
 import type { Referral } from '@/types'
 
+// Database referral type for queries with specific fields
+type DatabaseReferralResult = {
+  id: string
+  referee_name: string
+  referee_phone: string
+  created_at: string
+}
+
 // 사용자의 추천 내역 조회
 export async function getUserReferrals(userId: string) {
   try {
@@ -25,17 +33,17 @@ export async function getUserReferrals(userId: string) {
     return { referrals, error: null }
   } catch (error) {
     console.error('Get user referrals error:', error)
-    return { 
-      referrals: [], 
-      error: error instanceof Error ? error.message : '추천 내역 조회에 실패했습니다.' 
+    return {
+      referrals: [],
+      error: error instanceof Error ? error.message : '추천 내역 조회에 실패했습니다.'
     }
   }
 }
 
 // 친구 추천 등록
 export async function addReferral(
-  referrerId: string, 
-  refereeName: string, 
+  referrerId: string,
+  refereeName: string,
   refereePhone: string
 ) {
   try {
@@ -80,9 +88,9 @@ export async function addReferral(
     return { referral, error: null }
   } catch (error) {
     console.error('Add referral error:', error)
-    return { 
-      referral: null, 
-      error: error instanceof Error ? error.message : '추천 등록에 실패했습니다.' 
+    return {
+      referral: null,
+      error: error instanceof Error ? error.message : '추천 등록에 실패했습니다.'
     }
   }
 }
@@ -120,9 +128,9 @@ export async function verifyReferral(refereePhone: string) {
     return { verifiedCount: referrals.length, error: null }
   } catch (error) {
     console.error('Verify referral error:', error)
-    return { 
-      verifiedCount: 0, 
-      error: error instanceof Error ? error.message : '추천 인증에 실패했습니다.' 
+    return {
+      verifiedCount: 0,
+      error: error instanceof Error ? error.message : '추천 인증에 실패했습니다.'
     }
   }
 }
@@ -133,7 +141,7 @@ async function checkReferralMissionCompletion(referrerId: string) {
     // 인증된 추천 수 확인
     const { data: verifiedReferrals, error: countError } = await supabase
       .from('referrals')
-      .select('id')
+      .select('id, referee_name, referee_phone, created_at')
       .eq('referrer_id', referrerId)
       .eq('is_verified', true)
 
@@ -171,10 +179,10 @@ async function checkReferralMissionCompletion(referrerId: string) {
             status: 'completed',
             proof_data: {
               type: 'referral',
-              referrals: verifiedReferrals.map(ref => ({
+              referrals: verifiedReferrals.map((ref: DatabaseReferralResult) => ({
                 name: ref.referee_name,
                 phone: ref.referee_phone,
-                registeredAt: new Date().toISOString(),
+                registeredAt: ref.created_at,
                 verified: true
               })),
               submittedAt: new Date().toISOString()
@@ -209,9 +217,9 @@ export async function getReferralStats(userId: string) {
     return { stats, error: null }
   } catch (error) {
     console.error('Get referral stats error:', error)
-    return { 
-      stats: null, 
-      error: error instanceof Error ? error.message : '추천 통계 조회에 실패했습니다.' 
+    return {
+      stats: null,
+      error: error instanceof Error ? error.message : '추천 통계 조회에 실패했습니다.'
     }
   }
 }

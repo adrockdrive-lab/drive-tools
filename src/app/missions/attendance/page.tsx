@@ -1,18 +1,18 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { useAppStore } from '@/lib/store'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { toast } from 'sonner'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { useAppStore } from '@/lib/store'
 import { Calendar, Flame, Gift } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { useCallback, useEffect, useState } from 'react'
+import { toast } from 'sonner'
 
 export default function AttendanceMissionPage() {
   const router = useRouter()
   const { user, isAuthenticated, userMissions, updateUserMission } = useAppStore()
-  
+
   const [attendanceData, setAttendanceData] = useState({
     todayChecked: false,
     consecutiveDays: 0,
@@ -24,19 +24,8 @@ export default function AttendanceMissionPage() {
 
   // 현재 미션 상태 가져오기
   const currentMission = userMissions.find(um => um.missionId === 5) // mission_id 5 = attendance
-  const missionStatus = currentMission?.status || 'pending'
 
-  useEffect(() => {
-    if (!isAuthenticated) {
-      router.push('/register')
-      return
-    }
-    
-    // 출석 데이터 로드
-    loadAttendanceData()
-  }, [isAuthenticated, router])
-
-  const loadAttendanceData = async () => {
+  const loadAttendanceData = useCallback(async () => {
     if (!user) return
 
     try {
@@ -46,14 +35,14 @@ export default function AttendanceMissionPage() {
       const lastChecked = localStorage.getItem('lastAttendanceDate')
       const consecutiveStr = localStorage.getItem('consecutiveDays')
       const totalStr = localStorage.getItem('totalAttendanceDays')
-      
+
       const todayChecked = lastChecked === today
       const consecutiveDays = todayChecked ? parseInt(consecutiveStr || '1') : 0
       const totalDays = parseInt(totalStr || '0')
-      
+
       // 이번 주 출석 현황 (모의 데이터)
       const weeklyProgress = Array(7).fill(false).map((_, i) => i < Math.min(consecutiveDays, 7))
-      
+
       setAttendanceData({
         todayChecked,
         consecutiveDays,
@@ -64,7 +53,17 @@ export default function AttendanceMissionPage() {
     } catch (error) {
       console.error('Failed to load attendance data:', error)
     }
-  }
+  }, [user])
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.push('/register')
+      return
+    }
+
+    // 출석 데이터 로드
+    loadAttendanceData()
+  }, [isAuthenticated, router, loadAttendanceData])
 
   const checkAttendance = async () => {
     if (!user || attendanceData.todayChecked) return
@@ -75,17 +74,17 @@ export default function AttendanceMissionPage() {
       const today = new Date().toDateString()
       const newConsecutiveDays = attendanceData.consecutiveDays + 1
       const newTotalDays = attendanceData.totalDays + 1
-      
+
       // 로컬 스토리지에 저장 (실제로는 API 호출)
       localStorage.setItem('lastAttendanceDate', today)
       localStorage.setItem('consecutiveDays', newConsecutiveDays.toString())
       localStorage.setItem('totalAttendanceDays', newTotalDays.toString())
-      
+
       // 출석 데이터 업데이트
       const newWeeklyProgress = [...attendanceData.weeklyProgress]
       const todayIndex = new Date().getDay()
       newWeeklyProgress[todayIndex] = true
-      
+
       setAttendanceData(prev => ({
         ...prev,
         todayChecked: true,
@@ -111,8 +110,8 @@ export default function AttendanceMissionPage() {
       }
 
       // 미션 서비스 사용
-      const { startMission, submitMissionProof } = await import('@/lib/services/missions')
-      
+      const { startMission } = await import('@/lib/services/missions')
+
       if (currentMission) {
         // 기존 미션 업데이트
         const updatedMission = {
@@ -132,13 +131,13 @@ export default function AttendanceMissionPage() {
           })
         }
       }
-      
+
       // 성공 메시지
       let message = `출석체크 완료! +${totalReward.toLocaleString()}원 적립`
       if (newConsecutiveDays >= 7) {
         message += ` 🔥 ${newConsecutiveDays}일 연속!`
       }
-      
+
       toast.success(message)
 
     } catch (error) {
@@ -166,9 +165,9 @@ export default function AttendanceMissionPage() {
     const { consecutiveDays } = attendanceData
     const nextMilestone = Math.ceil((consecutiveDays + 1) / 7) * 7
     const daysToNext = nextMilestone - consecutiveDays
-    
+
     if (daysToNext <= 0) return null
-    
+
     return {
       days: daysToNext,
       reward: nextMilestone * 500, // 주간 보너스
@@ -196,8 +195,8 @@ export default function AttendanceMissionPage() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 onClick={() => router.push('/dashboard')}
               >
                 ← 대시보드
@@ -236,7 +235,7 @@ export default function AttendanceMissionPage() {
                 <p className="text-gray-600 mb-6">
                   {getStreakMessage()}
                 </p>
-                
+
                 {!attendanceData.todayChecked ? (
                   <Button
                     onClick={checkAttendance}

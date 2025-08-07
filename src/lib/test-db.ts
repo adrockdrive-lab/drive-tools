@@ -6,7 +6,7 @@ export async function testDatabaseConnection() {
     console.log('🔄 Testing Supabase connection...')
     
     // 1. 기본 연결 테스트
-    const { data, error } = await supabase.from('users').select('count').single()
+    const { error } = await supabase.from('users').select('count').single()
     
     if (error) {
       console.error('❌ Database connection failed:', error.message)

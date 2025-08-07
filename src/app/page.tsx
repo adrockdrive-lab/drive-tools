@@ -1,10 +1,10 @@
 'use client'
 
-import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { useAppStore } from '@/lib/store'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { useAppStore } from '@/lib/store'
+import { useRouter } from 'next/navigation'
+import { useEffect } from 'react'
 
 export default function Home() {
   const router = useRouter()
@@ -16,19 +16,19 @@ export default function Home() {
         // 먼저 Supabase 연결 테스트
         const { testSupabaseConnection } = await import('@/lib/test-connection')
         const testResult = await testSupabaseConnection()
-        
+
         if (!testResult.success) {
           console.error('Supabase connection failed:', testResult.error)
           return
         }
-        
+
         await initializeApp()
       } catch (error) {
         console.error('Failed to initialize app:', error)
       }
     }
     initialize()
-  }, [])
+  }, [initializeApp])
 
   const handleGetStarted = () => {
     if (isAuthenticated) {
@@ -65,26 +65,26 @@ export default function Home() {
             최대 <span className="font-bold text-blue-600">8만 7천원</span>까지 혜택을 받을 수 있습니다!
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Button 
-              size="lg" 
+            <Button
+              size="lg"
               className="px-8 py-3 text-lg"
               onClick={handleGetStarted}
             >
               {isAuthenticated ? '대시보드로 이동' : '회원가입'}
             </Button>
             {!isAuthenticated && (
-              <Button 
+              <Button
                 variant="outline"
-                size="lg" 
+                size="lg"
                 className="px-8 py-3 text-lg"
                 onClick={() => router.push('/login')}
               >
                 로그인
               </Button>
             )}
-            <Button 
+            <Button
               variant="ghost"
-              size="lg" 
+              size="lg"
               className="px-8 py-3 text-lg text-gray-600"
               onClick={() => router.push('/test')}
             >

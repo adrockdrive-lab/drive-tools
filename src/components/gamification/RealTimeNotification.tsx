@@ -38,7 +38,7 @@ export function ToastNotification({
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsVisible(false);
-      setTimeout(onDismiss, 300); // Wait for exit animation
+      if (onDismiss) setTimeout(onDismiss, 300); // Wait for exit animation
     }, duration);
 
     return () => clearTimeout(timer);
@@ -89,7 +89,7 @@ export function ToastNotification({
           `}
           onClick={() => {
             setIsVisible(false);
-            setTimeout(onDismiss, 300);
+            if (onDismiss) setTimeout(onDismiss, 300);
           }}
         >
           <div className="flex items-center space-x-3">
@@ -143,7 +143,7 @@ export function ToastContainer() {
 
   // Global toast function
   useEffect(() => {
-    (window as any).showToast = addToast;
+    (window as Window & { showToast?: (notification: NotificationProps) => void }).showToast = addToast;
   }, []);
 
   return (
@@ -290,7 +290,7 @@ export function SocialActivityFeed({ maxItems = 5 }: { maxItems?: number }) {
                   </p>
                 </div>
               </div>
-              {activity.metadata?.amount && (
+              {activity.metadata && 'amount' in activity.metadata && typeof activity.metadata.amount === 'number' && (
                 <Badge className="bg-green-100 text-green-800 text-xs flex-shrink-0 ml-2">
                   +{activity.metadata.amount.toLocaleString()}원
                 </Badge>

@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase'
-import type { Mission, UserMission, ProofData } from '@/types'
+import type { Mission, ProofData, UserMission } from '@/types'
 
 // 활성 미션 목록 조회
 export async function getActiveMissions() {
@@ -17,7 +17,7 @@ export async function getActiveMissions() {
       title: item.title,
       description: item.description,
       rewardAmount: item.reward_amount,
-      missionType: item.mission_type as any,
+      missionType: item.mission_type as Mission['missionType'],
       isActive: item.is_active,
       createdAt: item.created_at
     }))
@@ -25,9 +25,9 @@ export async function getActiveMissions() {
     return { missions, error: null }
   } catch (error) {
     console.error('Get missions error:', error)
-    return { 
-      missions: [], 
-      error: error instanceof Error ? error.message : '미션 목록 조회에 실패했습니다.' 
+    return {
+      missions: [],
+      error: error instanceof Error ? error.message : '미션 목록 조회에 실패했습니다.'
     }
   }
 }
@@ -56,7 +56,7 @@ export async function getUserMissions(userId: string) {
       id: item.id,
       userId: item.user_id,
       missionId: item.mission_id,
-      status: item.status as any,
+      status: item.status as UserMission['status'],
       proofData: item.proof_data,
       completedAt: item.completed_at,
       createdAt: item.created_at
@@ -65,9 +65,9 @@ export async function getUserMissions(userId: string) {
     return { userMissions, error: null }
   } catch (error) {
     console.error('Get user missions error:', error)
-    return { 
-      userMissions: [], 
-      error: error instanceof Error ? error.message : '사용자 미션 조회에 실패했습니다.' 
+    return {
+      userMissions: [],
+      error: error instanceof Error ? error.message : '사용자 미션 조회에 실패했습니다.'
     }
   }
 }
@@ -105,7 +105,7 @@ export async function startMission(userId: string, missionId: number) {
       id: data.id,
       userId: data.user_id,
       missionId: data.mission_id,
-      status: data.status as any,
+      status: data.status as UserMission['status'],
       proofData: data.proof_data,
       completedAt: data.completed_at,
       createdAt: data.created_at
@@ -114,22 +114,22 @@ export async function startMission(userId: string, missionId: number) {
     return { userMission, error: null }
   } catch (error) {
     console.error('Start mission error:', error)
-    return { 
-      userMission: null, 
-      error: error instanceof Error ? error.message : '미션 시작에 실패했습니다.' 
+    return {
+      userMission: null,
+      error: error instanceof Error ? error.message : '미션 시작에 실패했습니다.'
     }
   }
 }
 
 // 미션 진행상태 업데이트
 export async function updateMissionStatus(
-  userMissionId: string, 
+  userMissionId: string,
   status: 'pending' | 'in_progress' | 'completed' | 'verified',
   proofData?: ProofData
 ) {
   try {
-    const updateData: any = { status }
-    
+    const updateData: Record<string, unknown> = { status }
+
     if (proofData) {
       updateData.proof_data = proofData
     }
@@ -151,7 +151,7 @@ export async function updateMissionStatus(
       id: data.id,
       userId: data.user_id,
       missionId: data.mission_id,
-      status: data.status as any,
+      status: data.status as UserMission['status'],
       proofData: data.proof_data,
       completedAt: data.completed_at,
       createdAt: data.created_at
@@ -160,9 +160,9 @@ export async function updateMissionStatus(
     return { userMission, error: null }
   } catch (error) {
     console.error('Update mission status error:', error)
-    return { 
-      userMission: null, 
-      error: error instanceof Error ? error.message : '미션 상태 업데이트에 실패했습니다.' 
+    return {
+      userMission: null,
+      error: error instanceof Error ? error.message : '미션 상태 업데이트에 실패했습니다.'
     }
   }
 }
@@ -204,7 +204,7 @@ export async function submitMissionProof(
       id: data.id,
       userId: data.user_id,
       missionId: data.mission_id,
-      status: data.status as any,
+      status: data.status as UserMission['status'],
       proofData: data.proof_data,
       completedAt: data.completed_at,
       createdAt: data.created_at
@@ -213,9 +213,9 @@ export async function submitMissionProof(
     return { userMission: updatedUserMission, error: null }
   } catch (error) {
     console.error('Submit mission proof error:', error)
-    return { 
-      userMission: null, 
-      error: error instanceof Error ? error.message : '미션 제출에 실패했습니다.' 
+    return {
+      userMission: null,
+      error: error instanceof Error ? error.message : '미션 제출에 실패했습니다.'
     }
   }
 }

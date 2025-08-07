@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { useAppStore } from '@/lib/store'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { useAppStore } from '@/lib/store'
+import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
 export default function RegisterPage() {
@@ -14,17 +14,16 @@ export default function RegisterPage() {
   const { isAuthenticated, setUser } = useAppStore()
   const [step, setStep] = useState(1) // 1: 정보입력, 2: 휴대폰인증, 3: 완료
   const [isLoading, setIsLoading] = useState(false)
-  
+
   // Form data
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
     referralCode: ''
   })
-  
+
   // Phone verification
   const [verificationCode, setVerificationCode] = useState('')
-  const [sentCode, setSentCode] = useState('')
   const [countdown, setCountdown] = useState(0)
 
   // Redirect if already authenticated
@@ -32,7 +31,7 @@ export default function RegisterPage() {
     if (isAuthenticated) {
       router.push('/dashboard')
     }
-    
+
     // URL에서 레퍼럴 코드 확인
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search)
@@ -87,15 +86,15 @@ export default function RegisterPage() {
       // SMS 인증 서비스 사용
       const { sendSMSVerification } = await import('@/lib/services/auth')
       const { code, error } = await sendSMSVerification(formData.phone)
-      
+
       if (error || !code) {
         throw new Error(error || 'SMS 발송에 실패했습니다.')
       }
-      
-      setSentCode(code) // 개발 환경에서만 사용
+
+      // setSentCode(code) // 개발 환경에서만 사용 - 현재 미사용
       setCountdown(180) // 3분
       setStep(2)
-      
+
       // 개발용 토스트 (실제로는 SMS로 발송)
       toast.success(`인증번호가 발송되었습니다. (테스트: ${code})`)
     } catch (error) {
@@ -111,17 +110,17 @@ export default function RegisterPage() {
       toast.error('인증번호를 입력해주세요.')
       return
     }
-    
+
     setIsLoading(true)
     try {
       // SMS 인증 확인 서비스 사용
       const { verifySMSCode } = await import('@/lib/services/auth')
       const { verified, error } = await verifySMSCode(formData.phone, verificationCode)
-      
+
       if (!verified || error) {
         throw new Error(error || '인증번호가 일치하지 않습니다.')
       }
-      
+
       setStep(3)
       toast.success('휴대폰 인증이 완료되었습니다!')
     } catch (error) {
@@ -138,33 +137,33 @@ export default function RegisterPage() {
       // 회원가입 서비스 사용
       const { registerUser } = await import('@/lib/services/auth')
       const { verifyReferral } = await import('@/lib/services/referrals')
-      
+
       const { user, error } = await registerUser({
         name: formData.name,
         phone: formData.phone,
         verificationCode: verificationCode,
         referralCode: formData.referralCode || undefined
       })
-      
+
       if (error || !user) {
         throw new Error(error || '회원가입에 실패했습니다.')
       }
-      
+
       // 추천인 확인 (새로 가입한 사용자가 다른 사람이 추천한 경우)
       await verifyReferral(formData.phone)
-      
+
       // 사용자 정보를 스토어에 저장하고 앱 초기화
       setUser(user)
       const { initializeApp } = useAppStore.getState()
       await initializeApp()
-      
+
       toast.success('회원가입이 완료되었습니다!')
-      
+
       // 대시보드로 이동
       setTimeout(() => {
         router.push('/dashboard')
       }, 1000)
-      
+
     } catch (error) {
       console.error('Registration failed:', error)
       toast.error(`회원가입에 실패했습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`)
@@ -255,7 +254,7 @@ export default function RegisterPage() {
                   }}
                 />
               </div>
-              
+
               <div>
                 <Label htmlFor="referralCode">추천인 코드 (선택)</Label>
                 <Input
@@ -271,7 +270,7 @@ export default function RegisterPage() {
                   </p>
                 )}
               </div>
-              <Button 
+              <Button
                 onClick={sendVerificationCode}
                 disabled={isLoading}
                 className="w-full"
@@ -314,14 +313,14 @@ export default function RegisterPage() {
                 </button>
               </div>
               <div className="flex space-x-2">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={() => setStep(1)}
                   className="flex-1"
                 >
                   이전
                 </Button>
-                <Button 
+                <Button
                   onClick={verifyCode}
                   disabled={isLoading}
                   className="flex-1"
@@ -342,7 +341,7 @@ export default function RegisterPage() {
                   이제 드라이빙존 미션에 참여하실 수 있습니다.
                 </p>
               </div>
-              <Button 
+              <Button
                 onClick={completeRegistration}
                 disabled={isLoading}
                 className="w-full"

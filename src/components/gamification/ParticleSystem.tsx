@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
+
 import confetti from 'canvas-confetti';
 
 interface ParticleSystemProps {
@@ -21,9 +21,9 @@ export function ParticleSystem({
   duration = 3000,
   onComplete
 }: ParticleSystemProps) {
-  const timeoutRef = useRef<NodeJS.Timeout>();
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const particleConfigs = {
+  const particleConfigs = useMemo(() => ({
     success: {
       particleCount: intensity === 'low' ? 50 : intensity === 'medium' ? 100 : 150,
       colors: colors || ['#10B981', '#34D399', '#6EE7B7', '#A7F3D0'],
@@ -60,11 +60,11 @@ export function ParticleSystem({
       decay: 0.75,
       gravity: 0.7,
     }
-  };
+  }), [intensity, colors]);
 
-  const fireParticles = () => {
+  const fireParticles = useCallback(() => {
     const config = particleConfigs[type];
-    
+
     // Clear any existing timeout
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
@@ -113,7 +113,7 @@ export function ParticleSystem({
     timeoutRef.current = setTimeout(() => {
       onComplete?.();
     }, duration);
-  };
+  }, [type, duration, onComplete, particleConfigs]);
 
   useEffect(() => {
     if (trigger) {
@@ -125,7 +125,7 @@ export function ParticleSystem({
         clearTimeout(timeoutRef.current);
       }
     };
-  }, [trigger]);
+  }, [trigger, fireParticles]);
 
   // This component doesn't render anything visible
   // The particles are rendered by canvas-confetti
@@ -140,12 +140,12 @@ interface FireworksProps {
 }
 
 export function Fireworks({ active, duration = 5000, onComplete }: FireworksProps) {
-  const intervalRef = useRef<NodeJS.Timeout>();
-  const timeoutRef = useRef<NodeJS.Timeout>();
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const launchFirework = () => {
     const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff'];
-    
+
     confetti({
       particleCount: 4,
       angle: 60,
@@ -153,7 +153,7 @@ export function Fireworks({ active, duration = 5000, onComplete }: FireworksProp
       origin: { x: 0 },
       colors: colors
     });
-    
+
     confetti({
       particleCount: 4,
       angle: 120,
@@ -167,7 +167,7 @@ export function Fireworks({ active, duration = 5000, onComplete }: FireworksProp
     if (active) {
       // Launch fireworks every 600ms
       intervalRef.current = setInterval(launchFirework, 600);
-      
+
       // Stop after duration
       timeoutRef.current = setTimeout(() => {
         if (intervalRef.current) {
@@ -200,7 +200,7 @@ export const triggerParticleExplosion = (element: HTMLElement, type: ParticleSys
     particleCount: 100,
     spread: 70,
     origin: { x, y },
-    colors: type === 'success' ? ['#10B981', '#34D399'] : 
+    colors: type === 'success' ? ['#10B981', '#34D399'] :
             type === 'levelUp' ? ['#8B5CF6', '#A78BFA'] :
             ['#F59E0B', '#FBBF24']
   });

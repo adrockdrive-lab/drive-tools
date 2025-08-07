@@ -1,15 +1,15 @@
 // Gamification Components Export
-export { ProgressRing } from './ProgressRing';
-export { PaybackCounter } from './PaybackCounter';
-export { ParticleSystem, Fireworks, triggerParticleExplosion } from './ParticleSystem';
-export { LevelSystem, LevelBadge } from './LevelSystem';
-export { MissionCard } from './MissionCard';
 export { GameDashboard } from './GameDashboard';
+export { LevelBadge, LevelSystem } from './LevelSystem';
+export { MissionCard } from './MissionCard';
+export { Fireworks, ParticleSystem, triggerParticleExplosion } from './ParticleSystem';
+export { PaybackCounter } from './PaybackCounter';
+export { ProgressRing } from './ProgressRing';
 
 // Types
 export interface GamificationEvent {
   type: 'mission_start' | 'mission_complete' | 'level_up' | 'achievement_unlock' | 'payback_received';
-  data?: Record<string, any>;
+  data?: Record<string, unknown>;
   timestamp: string;
 }
 
@@ -49,6 +49,6 @@ export const getExperienceProgress = (currentExp: number, currentLevel: number):
   const nextLevelExp = calculateExpForNextLevel(currentLevel);
   const progressExp = currentExp - currentLevelExp;
   const requiredExp = nextLevelExp - currentLevelExp;
-  
+
   return Math.max(0, Math.min(100, (progressExp / requiredExp) * 100));
 };

@@ -7,6 +7,7 @@ export interface User {
   name: string
   phone: string
   phoneVerified: boolean
+  referralCode?: string
   createdAt: string
   updatedAt: string
   // 게이미피케이션 속성들
@@ -74,6 +75,7 @@ export type ProofData =
   | SNSProofData
   | ReviewProofData
   | ReferralProofData
+  | AttendanceProofData
 
 export interface ChallengeProofData {
   type: 'challenge'
@@ -110,6 +112,15 @@ export interface ReferralProofData {
   submittedAt: string
 }
 
+export interface AttendanceProofData {
+  type: 'attendance'
+  date: string
+  consecutiveDays: number
+  totalDays: number
+  reward: number
+  submittedAt: string
+}
+
 // ===============================================
 // API 응답 타입들
 // ===============================================
@@ -124,6 +135,7 @@ export interface UserRegistrationData {
   name: string
   phone: string
   verificationCode: string
+  referralCode?: string
 }
 
 export interface SMSVerificationData {
@@ -245,7 +257,7 @@ export type DatabaseUserMission = {
   user_id: string
   mission_id: number
   status: string
-  proof_data: any
+  proof_data: Record<string, unknown> | null
   completed_at: string | null
   created_at: string
 }

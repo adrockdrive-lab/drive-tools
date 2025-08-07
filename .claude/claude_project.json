@@ -14,6 +14,12 @@
       ],
       "description": "Supabase 데이터베이스 관리 및 쿼리 도구"
     },
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "@playwright/mcp@latest"
+      ]
+    },
     "filesystem": {
       "command": "node",
       "args": [
@@ -22,7 +28,7 @@
       "config": {
         "allowedDirectories": [
           "./src",
-          "./public", 
+          "./public",
           "./.claude",
           "./database-setup.sql",
           "./README.md",

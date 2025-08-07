@@ -24,7 +24,7 @@ export async function getUserPaybacks(userId: string) {
       userId: item.user_id,
       missionId: item.mission_id,
       amount: item.amount,
-      status: item.status as any,
+      status: item.status as Payback['status'],
       paidAt: item.paid_at,
       createdAt: item.created_at
     }))
@@ -32,9 +32,9 @@ export async function getUserPaybacks(userId: string) {
     return { paybacks, error: null }
   } catch (error) {
     console.error('Get user paybacks error:', error)
-    return { 
-      paybacks: [], 
-      error: error instanceof Error ? error.message : '페이백 내역 조회에 실패했습니다.' 
+    return {
+      paybacks: [],
+      error: error instanceof Error ? error.message : '페이백 내역 조회에 실패했습니다.'
     }
   }
 }
@@ -60,21 +60,21 @@ export async function getUserPaybackStats(userId: string) {
     return { stats, error: null }
   } catch (error) {
     console.error('Get payback stats error:', error)
-    return { 
-      stats: null, 
-      error: error instanceof Error ? error.message : '페이백 통계 조회에 실패했습니다.' 
+    return {
+      stats: null,
+      error: error instanceof Error ? error.message : '페이백 통계 조회에 실패했습니다.'
     }
   }
 }
 
 // 페이백 상태 업데이트 (관리자용)
 export async function updatePaybackStatus(
-  paybackId: string, 
+  paybackId: string,
   status: 'pending' | 'paid' | 'cancelled'
 ) {
   try {
-    const updateData: any = { status }
-    
+    const updateData: Record<string, unknown> = { status }
+
     if (status === 'paid') {
       updateData.paid_at = new Date().toISOString()
     }
@@ -93,7 +93,7 @@ export async function updatePaybackStatus(
       userId: data.user_id,
       missionId: data.mission_id,
       amount: data.amount,
-      status: data.status as any,
+      status: data.status as Payback['status'],
       paidAt: data.paid_at,
       createdAt: data.created_at
     }
@@ -101,9 +101,9 @@ export async function updatePaybackStatus(
     return { payback, error: null }
   } catch (error) {
     console.error('Update payback status error:', error)
-    return { 
-      payback: null, 
-      error: error instanceof Error ? error.message : '페이백 상태 업데이트에 실패했습니다.' 
+    return {
+      payback: null,
+      error: error instanceof Error ? error.message : '페이백 상태 업데이트에 실패했습니다.'
     }
   }
 }
@@ -136,7 +136,7 @@ export async function getPendingPaybacks() {
       userId: item.user_id,
       missionId: item.mission_id,
       amount: item.amount,
-      status: item.status as any,
+      status: item.status as Payback['status'],
       paidAt: item.paid_at,
       createdAt: item.created_at
     }))
@@ -144,9 +144,9 @@ export async function getPendingPaybacks() {
     return { paybacks, error: null }
   } catch (error) {
     console.error('Get pending paybacks error:', error)
-    return { 
-      paybacks: [], 
-      error: error instanceof Error ? error.message : '대기중인 페이백 조회에 실패했습니다.' 
+    return {
+      paybacks: [],
+      error: error instanceof Error ? error.message : '대기중인 페이백 조회에 실패했습니다.'
     }
   }
 }

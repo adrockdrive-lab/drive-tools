@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase'
-import type { User, UserRegistrationData, SMSVerificationData } from '@/types'
+import type { User, UserRegistrationData } from '@/types'
 
 // 사용자 가입
 export async function registerUser(userData: UserRegistrationData) {
@@ -41,9 +41,9 @@ export async function registerUser(userData: UserRegistrationData) {
     return { user, error: null }
   } catch (error) {
     console.error('Registration error:', error)
-    return { 
-      user: null, 
-      error: error instanceof Error ? error.message : '회원가입에 실패했습니다.' 
+    return {
+      user: null,
+      error: error instanceof Error ? error.message : '회원가입에 실패했습니다.'
     }
   }
 }
@@ -73,9 +73,9 @@ export async function getUserByPhone(phone: string) {
     return { user, error: null }
   } catch (error) {
     console.error('Get user error:', error)
-    return { 
-      user: null, 
-      error: error instanceof Error ? error.message : '사용자 조회에 실패했습니다.' 
+    return {
+      user: null,
+      error: error instanceof Error ? error.message : '사용자 조회에 실패했습니다.'
     }
   }
 }
@@ -112,9 +112,9 @@ export async function sendSMSVerification(phone: string) {
     return { code, error: null } // 개발용으로 코드 반환 (실제로는 null 반환)
   } catch (error) {
     console.error('SMS verification error:', error)
-    return { 
-      code: null, 
-      error: error instanceof Error ? error.message : 'SMS 발송에 실패했습니다.' 
+    return {
+      code: null,
+      error: error instanceof Error ? error.message : 'SMS 발송에 실패했습니다.'
     }
   }
 }
@@ -144,9 +144,9 @@ export async function verifySMSCode(phone: string, code: string) {
     return { verified: true, error: null }
   } catch (error) {
     console.error('SMS verification error:', error)
-    return { 
-      verified: false, 
-      error: error instanceof Error ? error.message : '인증에 실패했습니다.' 
+    return {
+      verified: false,
+      error: error instanceof Error ? error.message : '인증에 실패했습니다.'
     }
   }
 }

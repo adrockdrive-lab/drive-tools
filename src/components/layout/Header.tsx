@@ -1,35 +1,35 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import { useState } from 'react';
-import { useAppStore } from '@/lib/store';
-import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuLabel, 
-  DropdownMenuSeparator, 
-  DropdownMenuTrigger 
-} from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
-import { 
-  User, 
-  Settings, 
-  LogOut, 
-  Trophy, 
-  Coins, 
-  Menu,
-  X
+import { Button } from '@/components/ui/button';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu';
+import { useAppStore } from '@/lib/store';
+import { motion } from 'framer-motion';
+import {
+    Coins,
+    LogOut,
+    Menu,
+    Settings,
+    Trophy,
+    User,
+    X
 } from 'lucide-react';
+import { useState } from 'react';
 
 interface HeaderProps {
   showMobileNav?: boolean;
   onToggleMobileNav?: () => void;
 }
 
-export function Header({ showMobileNav = false, onToggleMobileNav }: HeaderProps) {
+export function Header({ onToggleMobileNav }: HeaderProps) {
   const { user, totalPayback, logout } = useAppStore();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -151,14 +151,14 @@ export function Header({ showMobileNav = false, onToggleMobileNav }: HeaderProps
             ) : (
               // 비로그인 사용자
               <div className="flex items-center space-x-2">
-                <Button 
-                  variant="ghost" 
+                <Button
+                  variant="ghost"
                   size="sm"
                   onClick={() => window.location.href = '/login'}
                 >
                   로그인
                 </Button>
-                <Button 
+                <Button
                   size="sm"
                   onClick={() => window.location.href = '/register'}
                   className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
@@ -232,14 +232,14 @@ export function Header({ showMobileNav = false, onToggleMobileNav }: HeaderProps
 }
 
 // 네비게이션 링크 컴포넌트
-function NavLink({ 
-  href, 
-  children, 
-  active = false 
-}: { 
-  href: string; 
-  children: React.ReactNode; 
-  active?: boolean 
+function NavLink({
+  href,
+  children,
+  active = false
+}: {
+  href: string;
+  children: React.ReactNode;
+  active?: boolean
 }) {
   return (
     <motion.a
@@ -248,8 +248,8 @@ function NavLink({
       whileTap={{ scale: 0.95 }}
       className={`
         px-3 py-2 rounded-md text-sm font-medium transition-colors
-        ${active 
-          ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400' 
+        ${active
+          ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400'
           : 'text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800'
         }
       `}
@@ -260,14 +260,14 @@ function NavLink({
 }
 
 // 모바일 네비게이션 링크 컴포넌트
-function MobileNavLink({ 
-  href, 
-  children, 
-  active = false, 
-  onClick 
-}: { 
-  href: string; 
-  children: React.ReactNode; 
+function MobileNavLink({
+  href,
+  children,
+  active = false,
+  onClick
+}: {
+  href: string;
+  children: React.ReactNode;
   active?: boolean;
   onClick?: () => void;
 }) {
@@ -278,8 +278,8 @@ function MobileNavLink({
       whileTap={{ scale: 0.95 }}
       className={`
         block px-4 py-2 rounded-md text-base font-medium transition-colors
-        ${active 
-          ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400' 
+        ${active
+          ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400'
           : 'text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800'
         }
       `}

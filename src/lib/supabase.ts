@@ -71,7 +71,7 @@ export type Database = {
           user_id: string
           mission_id: number
           status: string
-          proof_data: any | null
+          proof_data: Record<string, unknown> | null
           completed_at: string | null
           created_at: string
         }
@@ -80,7 +80,7 @@ export type Database = {
           user_id: string
           mission_id: number
           status?: string
-          proof_data?: any | null
+          proof_data?: Record<string, unknown> | null
           completed_at?: string | null
           created_at?: string
         }
@@ -89,7 +89,7 @@ export type Database = {
           user_id?: string
           mission_id?: number
           status?: string
-          proof_data?: any | null
+          proof_data?: Record<string, unknown> | null
           completed_at?: string | null
           created_at?: string
         }

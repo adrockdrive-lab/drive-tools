@@ -1,18 +1,18 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { useAppStore } from '@/lib/store'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { useAppStore } from '@/lib/store'
+import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
 export default function ReferralMissionPage() {
   const router = useRouter()
   const { user, isAuthenticated, userMissions, referrals, updateUserMission, addReferral } = useAppStore()
-  
+
   const [newReferral, setNewReferral] = useState({
     name: '',
     phone: ''
@@ -22,7 +22,6 @@ export default function ReferralMissionPage() {
 
   // 현재 미션 상태 가져오기
   const currentMission = userMissions.find(um => um.missionId === 4) // mission_id 4 = referral
-  const missionStatus = currentMission?.status || 'pending'
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -79,7 +78,7 @@ export default function ReferralMissionPage() {
 
     try {
       const formattedPhone = newReferral.phone.replace(/[^\d]/g, '').replace(/(\d{3})(\d{4})(\d{4})/, '010-$2-$3')
-      
+
       // 임시로 로컬에 추가 (실제로는 서버에 저장)
       const newReferralData = {
         id: `temp_${Date.now()}`,
@@ -90,12 +89,12 @@ export default function ReferralMissionPage() {
         rewardPaid: false,
         createdAt: new Date().toISOString()
       }
-      
+
       // 로컬 스토어 업데이트
       await addReferral(newReferralData)
 
       toast.success('친구가 추가되었습니다!')
-      
+
       // 폼 초기화
       setNewReferral({ name: '', phone: '' })
 
@@ -103,7 +102,12 @@ export default function ReferralMissionPage() {
       if (referrals.length + 1 >= 3) {
         const proofData = {
           type: 'referral' as const,
-          referrals: [...referrals, {
+          referrals: [...referrals.map(ref => ({
+            name: ref.refereeName,
+            phone: ref.refereePhone,
+            registeredAt: null, // Referral 타입에는 registeredAt이 없어서 null로 설정
+            verified: ref.isVerified
+          })), {
             name: newReferral.name,
             phone: formattedPhone,
             registeredAt: null,
@@ -113,8 +117,8 @@ export default function ReferralMissionPage() {
         }
 
         // 미션 서비스 사용
-        const { startMission, submitMissionProof } = await import('@/lib/services/missions')
-        
+        const { startMission } = await import('@/lib/services/missions')
+
         if (currentMission) {
           // 기존 미션 진행 상태로 업데이트
           const updatedUserMission = {
@@ -134,7 +138,7 @@ export default function ReferralMissionPage() {
             })
           }
         }
-        
+
         toast.success('친구 추천 미션이 진행 중입니다! 친구들이 가입하면 페이백을 받을 수 있습니다.')
       }
 
@@ -150,7 +154,7 @@ export default function ReferralMissionPage() {
     try {
       await navigator.clipboard.writeText(referralLink)
       toast.success('추천 링크가 복사되었습니다!')
-    } catch (error) {
+    } catch {
       toast.error('링크 복사에 실패했습니다.')
     }
   }
@@ -159,9 +163,7 @@ export default function ReferralMissionPage() {
     return referrals.filter(ref => ref.isVerified).length
   }
 
-  const getPendingCount = () => {
-    return referrals.filter(ref => !ref.isVerified).length
-  }
+
 
   if (!isAuthenticated || !user) {
     return (
@@ -181,8 +183,8 @@ export default function ReferralMissionPage() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 onClick={() => router.push('/dashboard')}
               >
                 ← 대시보드
@@ -248,7 +250,7 @@ export default function ReferralMissionPage() {
                   <li>• 친구가 가입하면 페이백 지급</li>
                 </ul>
               </div>
-              
+
               <div className="bg-green-50 p-4 rounded-lg">
                 <h4 className="font-semibold text-green-900 mb-2">🎁 혜택</h4>
                 <ul className="text-green-800 text-sm space-y-1">
@@ -318,7 +320,7 @@ export default function ReferralMissionPage() {
                     />
                   </div>
                 </div>
-                <Button 
+                <Button
                   onClick={addNewReferral}
                   disabled={isSubmitting}
                   className="w-full"
@@ -340,8 +342,8 @@ export default function ReferralMissionPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {referrals.map((referral, index) => (
-                    <div 
+                  {referrals.map((referral) => (
+                    <div
                       key={referral.id}
                       className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
                     >

@@ -1,45 +1,42 @@
 'use client';
 
-import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { useRouter } from 'next/navigation';
-import { useAppStore } from '@/lib/store';
+
+import { ProgressRing } from '@/components/gamification/ProgressRing';
 import { Header } from '@/components/layout/Header';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { toast } from 'sonner';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
-import { 
-  User, 
-  Phone, 
-  Calendar, 
-  Trophy, 
-  Coins, 
-  Target, 
-  TrendingUp,
-  Award,
-  Clock,
-  CheckCircle,
+import { useAppStore } from '@/lib/store';
+import { motion } from 'framer-motion';
+import {
   ArrowLeft,
+  Award,
+  Calendar,
+  CheckCircle,
+  Clock,
+  Coins,
   Copy,
+  Phone,
   Share2,
+  Target,
+  TrendingUp,
+  Trophy,
   Users
 } from 'lucide-react';
-import { ProgressRing } from '@/components/gamification/ProgressRing';
-import { PaybackCounter } from '@/components/gamification/PaybackCounter';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { 
-    user, 
-    missions, 
-    userMissions, 
-    paybacks, 
-    totalPayback, 
-    isAuthenticated 
+    const {
+    user,
+    missions,
+    userMissions,
+    paybacks,
+    isAuthenticated
   } = useAppStore();
 
   // 인증되지 않은 사용자 처리
@@ -49,16 +46,16 @@ export default function ProfilePage() {
   }
 
   // 통계 계산
-  const completedMissions = userMissions.filter(um => 
+  const completedMissions = userMissions.filter(um =>
     um.status === 'completed' || um.status === 'verified'
   ).length;
-  
+
   const totalMissions = missions.length;
   const completionRate = totalMissions > 0 ? (completedMissions / totalMissions) * 100 : 0;
-  
+
   const paidPaybacks = paybacks.filter(p => p.status === 'paid');
   const pendingPaybacks = paybacks.filter(p => p.status === 'pending');
-  
+
   const totalPaidAmount = paidPaybacks.reduce((sum, p) => sum + p.amount, 0);
   const totalPendingAmount = pendingPaybacks.reduce((sum, p) => sum + p.amount, 0);
 
@@ -81,7 +78,7 @@ export default function ProfilePage() {
       try {
         await navigator.clipboard.writeText(user.referralCode);
         toast.success('레퍼럴 코드가 복사되었습니다!');
-      } catch (error) {
+      } catch {
         toast.error('복사에 실패했습니다.');
       }
     }
@@ -94,7 +91,7 @@ export default function ProfilePage() {
       try {
         await navigator.clipboard.writeText(referralLink);
         toast.success('추천 링크가 복사되었습니다!');
-      } catch (error) {
+      } catch {
         toast.error('복사에 실패했습니다.');
       }
     }
@@ -104,7 +101,7 @@ export default function ProfilePage() {
   const shareReferralLink = async () => {
     if (user?.referralCode) {
       const referralLink = `${window.location.origin}/register?referral=${user.referralCode}`;
-      
+
       if (navigator.share) {
         try {
           await navigator.share({
@@ -112,7 +109,7 @@ export default function ProfilePage() {
             text: '운전면허 합격하고 페이백 받자! 드라이빙존 미션 시스템에 참여해보세요.',
             url: referralLink
           });
-        } catch (error) {
+        } catch {
           // 공유 취소 시 에러가 발생할 수 있음
           console.log('Share cancelled');
         }
@@ -126,7 +123,7 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
       <Header />
-      
+
       <div className="container mx-auto px-4 py-8">
         {/* 뒤로가기 버튼 */}
         <motion.div
@@ -182,7 +179,7 @@ export default function ProfilePage() {
                       <p className="font-medium">{user.phone}</p>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center space-x-3">
                     <Calendar className="w-5 h-5 text-gray-500" />
                     <div>
@@ -190,7 +187,7 @@ export default function ProfilePage() {
                       <p className="font-medium">{joinedDate}</p>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center space-x-3">
                     <CheckCircle className="w-5 h-5 text-green-500" />
                     <div>
@@ -215,7 +212,7 @@ export default function ProfilePage() {
                       {currentExp.toLocaleString()} XP
                     </Badge>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
                       <span>다음 레벨까지</span>
@@ -267,11 +264,9 @@ export default function ProfilePage() {
                   <div className="flex items-center justify-center w-12 h-12 bg-blue-500 rounded-full mx-auto mb-4">
                     <Coins className="w-6 h-6 text-white" />
                   </div>
-                  <PaybackCounter
-                    amount={totalPaidAmount}
-                    size="lg"
-                    color="primary"
-                  />
+                  <div className="text-2xl font-bold text-blue-700 dark:text-blue-400">
+                    {totalPaidAmount.toLocaleString()}원
+                  </div>
                   <p className="text-sm text-blue-600 dark:text-blue-500">
                     지급받은 페이백
                   </p>
@@ -327,7 +322,7 @@ export default function ProfilePage() {
                       {paidPaybacks.length}건
                     </p>
                   </div>
-                  
+
                   <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-4">
                     <div className="flex items-center space-x-2 mb-2">
                       <Clock className="w-5 h-5 text-orange-500" />
@@ -401,7 +396,7 @@ export default function ProfilePage() {
                 </div>
 
                 {/* 공유 버튼 */}
-                <Button 
+                <Button
                   onClick={shareReferralLink}
                   className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
                   size="lg"
@@ -497,7 +492,7 @@ export default function ProfilePage() {
                     </motion.div>
                   )}
                 </div>
-                
+
                 {completedMissions === 0 && (
                   <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                     <Award className="w-12 h-12 mx-auto mb-4 opacity-50" />
