@@ -6,7 +6,6 @@ import { useAppStore } from '@/lib/store'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { FileUpload } from '@/components/mission/FileUpload'
 import { toast } from 'sonner'
 
@@ -29,7 +28,6 @@ export default function ChallengeMissionPage() {
     }
   }, [isAuthenticated, router])
 
-
   const validateForm = () => {
     const hours = parseFloat(studyHours)
     
@@ -50,7 +48,6 @@ export default function ChallengeMissionPage() {
 
     return true
   }
-
 
   const submitMission = async () => {
     if (!validateForm() || !user) return
@@ -100,10 +97,9 @@ export default function ChallengeMissionPage() {
     }
   }
 
-
   if (!isAuthenticated || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-gray-600">인증 확인 중...</p>
@@ -114,155 +110,158 @@ export default function ChallengeMissionPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Button 
-                variant="ghost" 
-                onClick={() => router.push('/dashboard')}
-              >
-                ← 대시보드
-              </Button>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">
-                  🏆 재능충 챌린지
-                </h1>
-                <p className="text-gray-600">교육시간 14시간 이내 합격 도전!</p>
-              </div>
+      {/* Mobile Header */}
+      <div className="bg-gradient-to-br from-blue-600 to-blue-700 px-4 py-6 text-white">
+        <div className="flex items-center space-x-3 mb-4">
+          <Button 
+            variant="ghost" 
+            size="sm"
+            onClick={() => router.push('/dashboard')}
+            className="text-white hover:bg-white/20 p-2"
+          >
+            ← 
+          </Button>
+          <span className="text-3xl">🏆</span>
+          <div>
+            <h1 className="text-xl font-bold">재능충 챌린지</h1>
+            <p className="text-blue-100 text-sm">14시간 이내 합격 도전!</p>
+          </div>
+        </div>
+        
+        <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4">
+          <div className="text-blue-100 text-sm">페이백 보상</div>
+          <div className="text-2xl font-bold">20,000원</div>
+        </div>
+      </div>
+
+      {/* Bento Grid Layout */}
+      <div className="p-4 space-y-4 max-w-4xl mx-auto">
+        {/* Status Card */}
+        {missionStatus !== 'pending' && (
+          <div className={`
+            rounded-2xl p-6 text-center text-white
+            ${missionStatus === 'completed' ? 'bg-gradient-to-br from-yellow-500 to-orange-500' : 'bg-gradient-to-br from-green-500 to-emerald-600'}
+          `}>
+            <div className="text-4xl mb-2">
+              {missionStatus === 'completed' ? '⏳' : '🎉'}
             </div>
-            <div className="text-right">
-              <div className="text-2xl font-bold text-green-600">20,000원</div>
-              <div className="text-sm text-gray-500">페이백 금액</div>
+            <h3 className="text-lg font-bold mb-2">
+              {missionStatus === 'completed' ? '검토 중' : '미션 완료!'}
+            </h3>
+            <p className="text-white/90 text-sm">
+              {missionStatus === 'completed' 
+                ? '제출하신 내용을 검토 중입니다. 검토 완료 후 페이백이 지급됩니다.' 
+                : '축하합니다! 20,000원 페이백이 지급되었습니다.'}
+            </p>
+          </div>
+        )}
+
+        {/* Info Cards Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {/* 참여 조건 */}
+          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+            <div className="flex items-center space-x-2 mb-3">
+              <span className="text-xl">📋</span>
+              <h3 className="font-bold text-gray-900">참여 조건</h3>
+            </div>
+            <div className="space-y-1 text-sm text-gray-600">
+              <div>• 교육시간 14시간 이내</div>
+              <div>• 합격증 사진 제출</div>
+              <div>• 실제 교육시간 입력</div>
+            </div>
+          </div>
+
+          {/* 혜택 */}
+          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+            <div className="flex items-center space-x-2 mb-3">
+              <span className="text-xl">🎁</span>
+              <h3 className="font-bold text-gray-900">혜택</h3>
+            </div>
+            <div className="space-y-1 text-sm text-gray-600">
+              <div>• 페이백 20,000원</div>
+              <div>• 매달 30만원 추첨</div>
+            </div>
+          </div>
+
+          {/* 주의사항 */}
+          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+            <div className="flex items-center space-x-2 mb-3">
+              <span className="text-xl">⚠️</span>
+              <h3 className="font-bold text-gray-900">주의사항</h3>
+            </div>
+            <div className="space-y-1 text-sm text-gray-600">
+              <div>• 허위 정보 시 취소</div>
+              <div>• 검토 후 지급 (3-5일)</div>
             </div>
           </div>
         </div>
-      </header>
 
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
-        <div className="max-w-2xl mx-auto">
-          {/* Mission Status */}
-          {missionStatus !== 'pending' && (
-            <Card className="mb-8">
-              <CardContent className="pt-6">
-                <div className="text-center">
-                  {missionStatus === 'completed' && (
-                    <>
-                      <div className="text-4xl mb-2">⏳</div>
-                      <h3 className="text-lg font-semibold text-yellow-600 mb-2">검토 중</h3>
-                      <p className="text-gray-600">제출하신 내용을 검토 중입니다. 검토 완료 후 페이백이 지급됩니다.</p>
-                    </>
-                  )}
-                  {missionStatus === 'verified' && (
-                    <>
-                      <div className="text-4xl mb-2">🎉</div>
-                      <h3 className="text-lg font-semibold text-green-600 mb-2">미션 완료!</h3>
-                      <p className="text-gray-600">축하합니다! 20,000원 페이백이 지급되었습니다.</p>
-                    </>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Mission Details */}
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle>미션 안내</CardTitle>
-              <CardDescription>
-                재능충 챌린지는 교육시간 14시간 이내에 운전면허 시험에 합격하는 미션입니다.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <h4 className="font-semibold text-blue-900 mb-2">📋 참여 조건</h4>
-                <ul className="text-blue-800 text-sm space-y-1">
-                  <li>• 교육시간 14시간 이내로 합격</li>
-                  <li>• 합격증 또는 면허증 사진 제출</li>
-                  <li>• 실제 교육시간 정확히 입력</li>
-                </ul>
+        {/* Submission Form */}
+        {missionStatus === 'pending' && (
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+            <div className="flex items-center space-x-2 mb-6">
+              <span className="text-2xl">✅</span>
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">미션 인증</h2>
+                <p className="text-gray-600 text-sm">교육시간과 합격 인증서를 제출해주세요</p>
               </div>
-              
-              <div className="bg-green-50 p-4 rounded-lg">
-                <h4 className="font-semibold text-green-900 mb-2">🎁 혜택</h4>
-                <ul className="text-green-800 text-sm space-y-1">
-                  <li>• 페이백: 20,000원</li>
-                  <li>• 추가 혜택: 매달 30만원 상품권 추첨</li>
-                </ul>
+            </div>
+
+            <div className="space-y-6">
+              {/* Study Hours Input */}
+              <div className="bg-gray-50 rounded-xl p-4">
+                <Label htmlFor="studyHours" className="text-sm font-medium text-gray-700">
+                  교육시간 (시간)
+                </Label>
+                <Input
+                  id="studyHours"
+                  type="number"
+                  min="1"
+                  max="14"
+                  step="0.5"
+                  placeholder="예: 12.5"
+                  value={studyHours}
+                  onChange={(e) => setStudyHours(e.target.value)}
+                  className="mt-2 border-0 bg-white shadow-sm"
+                />
+                <p className="text-xs text-gray-500 mt-2">
+                  실제 수강한 교육시간을 정확히 입력해주세요 (최대 14시간)
+                </p>
               </div>
 
-              <div className="bg-yellow-50 p-4 rounded-lg">
-                <h4 className="font-semibold text-yellow-900 mb-2">⚠️ 주의사항</h4>
-                <ul className="text-yellow-800 text-sm space-y-1">
-                  <li>• 허위 정보 제출 시 페이백이 취소됩니다</li>
-                  <li>• 검토 후 페이백이 지급됩니다 (영업일 기준 3-5일)</li>
-                  <li>• 문의사항은 고객센터로 연락 바랍니다</li>
-                </ul>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Submission Form */}
-          {missionStatus === 'pending' && (
-            <Card>
-              <CardHeader>
-                <CardTitle>미션 인증</CardTitle>
-                <CardDescription>
-                  교육시간과 합격 인증서를 제출해주세요.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Study Hours Input */}
-                <div>
-                  <Label htmlFor="studyHours">교육시간 (시간)</Label>
-                  <Input
-                    id="studyHours"
-                    type="number"
-                    min="1"
-                    max="14"
-                    step="0.5"
-                    placeholder="예: 12.5"
-                    value={studyHours}
-                    onChange={(e) => setStudyHours(e.target.value)}
-                  />
-                  <p className="text-sm text-gray-500 mt-1">
-                    실제 수강한 교육시간을 정확히 입력해주세요. (최대 14시간)
-                  </p>
-                </div>
-
-                {/* File Upload */}
-                <div>
-                  <Label>합격 인증서</Label>
-                  <div className="mt-2">
-                    <FileUpload
-                      accept="image/jpeg,image/png,image/webp,application/pdf"
-                      maxSize={10 * 1024 * 1024} // 10MB
-                      onUpload={(url) => setCertificateUrl(url)}
-                      placeholder="합격증 또는 면허증 파일을 업로드하세요"
-                      disabled={isSubmitting}
-                    />
-                    <p className="text-sm text-gray-500 mt-1">
-                      운전면허 합격 인증서 또는 관련 증빙 파일을 업로드해주세요. (JPG, PNG, WebP, PDF)
-                    </p>
-                  </div>
-                </div>
-
-                {/* Submit Button */}
-                <Button 
-                  onClick={submitMission}
+              {/* File Upload */}
+              <div className="bg-gray-50 rounded-xl p-4">
+                <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                  합격 인증서
+                </Label>
+                <FileUpload
+                  accept="image/jpeg,image/png,image/webp,application/pdf"
+                  maxSize={10 * 1024 * 1024} // 10MB
+                  onUpload={(url) => setCertificateUrl(url)}
+                  placeholder="합격증 또는 면허증 파일을 업로드하세요"
                   disabled={isSubmitting}
-                  className="w-full"
-                  size="lg"
-                >
-                  {isSubmitting ? '제출 중...' : '미션 제출하기'}
-                </Button>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      </main>
+                />
+                <p className="text-xs text-gray-500 mt-2">
+                  운전면허 합격 인증서 파일을 업로드해주세요 (JPG, PNG, WebP, PDF)
+                </p>
+              </div>
+
+              {/* Submit Button */}
+              <Button 
+                onClick={submitMission}
+                disabled={isSubmitting}
+                className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
+                size="lg"
+              >
+                {isSubmitting ? '제출 중...' : '미션 제출하기 🚀'}
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Bottom Spacing for Mobile */}
+        <div className="h-20"></div>
+      </div>
     </div>
   )
 }
