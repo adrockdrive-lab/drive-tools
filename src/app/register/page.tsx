@@ -1,236 +1,130 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { useAppStore } from '@/lib/store'
+import { authService } from '@/lib/services/auth'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
 export default function RegisterPage() {
   const router = useRouter()
-  const { isAuthenticated, setUser } = useAppStore()
-  const [step, setStep] = useState(1) // 1: 정보입력, 2: 휴대폰인증, 3: 완료
-  const [isLoading, setIsLoading] = useState(false)
-
-  // Form data
+  const [step, setStep] = useState(1)
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
+    verificationCode: '',
+    branchCode: '',
     referralCode: ''
   })
-
-  // Phone verification
-  const [verificationCode, setVerificationCode] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
   const [countdown, setCountdown] = useState(0)
 
-  // Redirect if already authenticated
+  // URL에서 지점 및 추천 정보 추출
   useEffect(() => {
-    if (isAuthenticated) {
-      router.push('/dashboard')
-    }
+    const params = authService.extractUrlParams()
+    setFormData(prev => ({
+      ...prev,
+      branchCode: params.branchCode || '',
+      referralCode: params.referralCode || ''
+    }))
+  }, [])
 
-    // URL에서 레퍼럴 코드 확인
-    if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search)
-      const referralFromUrl = urlParams.get('referral') || urlParams.get('ref')
-      if (referralFromUrl) {
-        setFormData(prev => ({ ...prev, referralCode: referralFromUrl }))
-      }
-    }
-  }, [isAuthenticated, router])
-
-  // Countdown timer
+  // 카운트다운 타이머
   useEffect(() => {
-    let interval: NodeJS.Timeout
     if (countdown > 0) {
-      interval = setInterval(() => {
-        setCountdown(prev => prev - 1)
-      }, 1000)
+      const timer = setTimeout(() => setCountdown(countdown - 1), 1000)
+      return () => clearTimeout(timer)
     }
-    return () => clearInterval(interval)
   }, [countdown])
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }))
-  }
-
-  const validateStep1 = () => {
-    if (!formData.name.trim()) {
-      toast.error('이름을 입력해주세요.')
-      return false
-    }
-    if (!formData.phone.trim()) {
-      toast.error('휴대폰 번호를 입력해주세요.')
-      return false
-    }
-    // 휴대폰 번호 형식 검증
-    const phoneRegex = /^010-?\d{4}-?\d{4}$/
-    if (!phoneRegex.test(formData.phone.replace(/[^\d]/g, '').replace(/(\d{3})(\d{4})(\d{4})/, '010$2$3'))) {
-      toast.error('올바른 휴대폰 번호를 입력해주세요.')
-      return false
-    }
-    return true
+    setFormData(prev => ({ ...prev, [field]: value }))
   }
 
   const sendVerificationCode = async () => {
-    if (!validateStep1()) return
-
-    setIsLoading(true)
-    try {
-      // SMS 인증 서비스 사용
-      const { sendSMSVerification } = await import('@/lib/services/auth')
-      const { code, error } = await sendSMSVerification(formData.phone)
-
-      if (error || !code) {
-        throw new Error(error || 'SMS 발송에 실패했습니다.')
-      }
-
-      // setSentCode(code) // 개발 환경에서만 사용 - 현재 미사용
-      setCountdown(180) // 3분
-      setStep(2)
-
-      // 개발용 토스트 (실제로는 SMS로 발송)
-      toast.success(`인증번호가 발송되었습니다. (테스트: ${code})`)
-    } catch (error) {
-      console.error('SMS send error:', error)
-      toast.error('인증번호 발송에 실패했습니다.')
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const verifyCode = async () => {
-    if (!verificationCode.trim()) {
-      toast.error('인증번호를 입력해주세요.')
+    if (!formData.phone) {
+      toast.error('휴대폰 번호를 입력해주세요.')
       return
     }
 
     setIsLoading(true)
-    try {
-      // SMS 인증 확인 서비스 사용
-      const { verifySMSCode } = await import('@/lib/services/auth')
-      const { verified, error } = await verifySMSCode(formData.phone, verificationCode)
+    const result = await authService.sendVerificationCode(formData.phone)
+    setIsLoading(false)
 
-      if (!verified || error) {
-        throw new Error(error || '인증번호가 일치하지 않습니다.')
-      }
-
-      setStep(3)
-      toast.success('휴대폰 인증이 완료되었습니다!')
-    } catch (error) {
-      console.error('SMS verify error:', error)
-      toast.error(error instanceof Error ? error.message : '인증에 실패했습니다.')
-    } finally {
-      setIsLoading(false)
+    if (result.success) {
+      toast.success('인증 코드가 전송되었습니다.')
+      setCountdown(180) // 3분 카운트다운
+    } else {
+      toast.error(result.error || '인증 코드 전송에 실패했습니다.')
     }
   }
 
-  const completeRegistration = async () => {
+  const verifyCode = async () => {
+    if (!formData.verificationCode) {
+      toast.error('인증 코드를 입력해주세요.')
+      return
+    }
+
     setIsLoading(true)
-    try {
-      // 회원가입 서비스 사용
-      const { registerUser } = await import('@/lib/services/auth')
-      const { verifyReferral } = await import('@/lib/services/referrals')
+    const result = await authService.verifyCode(formData.phone, formData.verificationCode)
+    setIsLoading(false)
 
-      const { user, error } = await registerUser({
-        name: formData.name,
-        phone: formData.phone,
-        verificationCode: verificationCode,
-        referralCode: formData.referralCode || undefined
-      })
-
-      if (error || !user) {
-        throw new Error(error || '회원가입에 실패했습니다.')
-      }
-
-      // 추천인 확인 (새로 가입한 사용자가 다른 사람이 추천한 경우)
-      await verifyReferral(formData.phone)
-
-      // 사용자 정보를 스토어에 저장하고 앱 초기화
-      setUser(user)
-      const { initializeApp } = useAppStore.getState()
-      await initializeApp()
-
-      toast.success('회원가입이 완료되었습니다!')
-
-      // 대시보드로 이동
-      setTimeout(() => {
-        router.push('/dashboard')
-      }, 1000)
-
-    } catch (error) {
-      console.error('Registration failed:', error)
-      toast.error(`회원가입에 실패했습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`)
-    } finally {
-      setIsLoading(false)
+    if (result.success) {
+      toast.success('인증이 완료되었습니다.')
+      setStep(3)
+    } else {
+      toast.error(result.error || '인증에 실패했습니다.')
     }
   }
 
-  const resendCode = async () => {
-    if (countdown > 0) return
-    await sendVerificationCode()
-  }
+  const register = async () => {
+    if (!formData.name) {
+      toast.error('이름을 입력해주세요.')
+      return
+    }
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60)
-    const secs = seconds % 60
-    return `${mins}:${secs.toString().padStart(2, '0')}`
-  }
+    setIsLoading(true)
+    const result = await authService.register(formData)
+    setIsLoading(false)
 
-  if (isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">대시보드로 이동 중...</p>
-        </div>
-      </div>
-    )
+    if (result.success) {
+      toast.success('회원가입이 완료되었습니다!')
+      router.push('/dashboard')
+    } else {
+      toast.error(result.error || '회원가입에 실패했습니다.')
+    }
   }
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       {/* Status Bar */}
-      <div className="h-6 bg-background absolute top-0 left-0 right-0"></div>
+      <div className="h-6 bg-background"></div>
 
       <Card className="w-full max-w-md gradient-card border-border">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl text-white">
-            🚗 드라이빙존 회원가입
-          </CardTitle>
-          <CardDescription className="text-muted-foreground">
-            미션 페이백 혜택을 받기 위해 가입해주세요
-          </CardDescription>
+          <div className="mb-4">
+            <div className="text-4xl mb-2">🚗</div>
+            <CardTitle className="text-2xl font-bold text-white">회원가입</CardTitle>
+            <p className="text-muted-foreground mt-2">
+              {formData.branchCode ? `지점: ${formData.branchCode}` : '드라이빙존에 오신 것을 환영합니다!'}
+            </p>
+          </div>
         </CardHeader>
-        <CardContent className="space-y-6">
+
+        <CardContent className="space-y-4">
           {/* Progress Indicator */}
-          <div className="flex items-center justify-center space-x-4">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
-              step >= 1 ? 'bg-primary text-white' : 'bg-secondary text-muted-foreground'
-            }`}>
-              1
-            </div>
-            <div className={`h-1 w-8 ${step >= 2 ? 'bg-primary' : 'bg-secondary'}`}></div>
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
-              step >= 2 ? 'bg-primary text-white' : 'bg-secondary text-muted-foreground'
-            }`}>
-              2
-            </div>
-            <div className={`h-1 w-8 ${step >= 3 ? 'bg-primary' : 'bg-secondary'}`}></div>
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
-              step >= 3 ? 'bg-primary text-white' : 'bg-secondary text-muted-foreground'
-            }`}>
-              3
+          <div className="flex justify-center mb-6">
+            <div className="flex space-x-2">
+              <div className={`w-3 h-3 rounded-full ${step >= 1 ? 'bg-primary' : 'bg-secondary'}`}></div>
+              <div className={`w-3 h-3 rounded-full ${step >= 2 ? 'bg-primary' : 'bg-secondary'}`}></div>
+              <div className={`w-3 h-3 rounded-full ${step >= 3 ? 'bg-primary' : 'bg-secondary'}`}></div>
             </div>
           </div>
 
-          {/* Step 1: Information Input */}
+          {/* Step 1: 기본 정보 */}
           {step === 1 && (
             <div className="space-y-4">
               <div>
@@ -238,12 +132,13 @@ export default function RegisterPage() {
                 <Input
                   id="name"
                   type="text"
-                  placeholder="실명을 입력해주세요"
+                  placeholder="홍길동"
                   value={formData.name}
                   onChange={(e) => handleInputChange('name', e.target.value)}
                   className="bg-secondary/50 border-border text-white"
                 />
               </div>
+
               <div>
                 <Label htmlFor="phone" className="text-white">휴대폰 번호</Label>
                 <Input
@@ -251,85 +146,60 @@ export default function RegisterPage() {
                   type="tel"
                   placeholder="010-0000-0000"
                   value={formData.phone}
-                  onChange={(e) => {
-                    const value = e.target.value.replace(/[^\d]/g, '')
-                    const formatted = value.replace(/(\d{3})(\d{4})(\d{4})/, '010-$2-$3')
-                    handleInputChange('phone', formatted)
-                  }}
+                  onChange={(e) => handleInputChange('phone', e.target.value)}
                   className="bg-secondary/50 border-border text-white"
                 />
               </div>
 
-              <div>
-                <Label htmlFor="referralCode" className="text-white">추천인 코드 (선택)</Label>
-                <Input
-                  id="referralCode"
-                  type="text"
-                  placeholder="친구의 추천 코드를 입력하세요"
-                  value={formData.referralCode}
-                  onChange={(e) => handleInputChange('referralCode', e.target.value.toUpperCase())}
-                  className="bg-secondary/50 border-border text-white"
-                />
-                {formData.referralCode && (
-                  <p className="text-xs text-green-400 mt-1">
-                    ✓ 추천 코드가 입력되었습니다. 추가 혜택을 받으실 수 있습니다!
-                  </p>
-                )}
-              </div>
               <Button
-                onClick={sendVerificationCode}
-                disabled={isLoading}
+                onClick={() => setStep(2)}
+                disabled={!formData.name || !formData.phone}
                 className="w-full bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90"
               >
-                {isLoading ? '발송 중...' : '인증번호 발송'}
+                다음
               </Button>
             </div>
           )}
 
-          {/* Step 2: Phone Verification */}
+          {/* Step 2: SMS 인증 */}
           {step === 2 && (
             <div className="space-y-4">
-              <div className="text-center">
-                <p className="text-sm text-muted-foreground mb-2">
-                  <span className="font-semibold text-white">{formData.phone}</span>로<br />
-                  인증번호를 발송했습니다.
+              <div>
+                <Label htmlFor="verificationCode" className="text-white">인증 코드</Label>
+                <div className="flex space-x-2">
+                  <Input
+                    id="verificationCode"
+                    type="text"
+                    placeholder="6자리 코드"
+                    value={formData.verificationCode}
+                    onChange={(e) => handleInputChange('verificationCode', e.target.value)}
+                    className="flex-1 bg-secondary/50 border-border text-white"
+                  />
+                  <Button
+                    onClick={sendVerificationCode}
+                    disabled={isLoading || countdown > 0}
+                    variant="outline"
+                    className="border-border text-white hover:bg-secondary"
+                  >
+                    {countdown > 0 ? `${Math.floor(countdown / 60)}:${(countdown % 60).toString().padStart(2, '0')}` : '인증번호'}
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {formData.phone}로 인증 코드가 전송됩니다.
                 </p>
               </div>
-              <div>
-                <Label htmlFor="code" className="text-white">인증번호</Label>
-                <Input
-                  id="code"
-                  type="text"
-                  placeholder="6자리 인증번호 입력"
-                  value={verificationCode}
-                  onChange={(e) => setVerificationCode(e.target.value)}
-                  maxLength={6}
-                  className="bg-secondary/50 border-border text-white"
-                />
-              </div>
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-muted-foreground">
-                  {countdown > 0 ? `남은 시간: ${formatTime(countdown)}` : '시간 만료'}
-                </span>
-                <button
-                  onClick={resendCode}
-                  disabled={countdown > 0}
-                  className="text-primary hover:text-primary/80 disabled:text-muted-foreground disabled:cursor-not-allowed"
-                >
-                  재발송
-                </button>
-              </div>
+
               <div className="flex space-x-2">
                 <Button
-                  variant="outline"
                   onClick={() => setStep(1)}
+                  variant="outline"
                   className="flex-1 border-border text-white hover:bg-secondary"
                 >
                   이전
                 </Button>
                 <Button
                   onClick={verifyCode}
-                  disabled={isLoading}
+                  disabled={!formData.verificationCode || isLoading}
                   className="flex-1 bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90"
                 >
                   {isLoading ? '확인 중...' : '인증 확인'}
@@ -338,48 +208,58 @@ export default function RegisterPage() {
             </div>
           )}
 
-          {/* Step 3: Completion */}
+          {/* Step 3: 회원가입 완료 */}
           {step === 3 && (
-            <div className="space-y-4 text-center">
-              <div className="text-6xl">🎉</div>
-              <div>
-                <h3 className="text-xl font-semibold mb-2 text-white">인증 완료!</h3>
-                <p className="text-muted-foreground text-sm mb-4">
-                  이제 드라이빙존 미션에 참여하실 수 있습니다.
+            <div className="space-y-4">
+              <div className="text-center">
+                <div className="text-6xl mb-4">✅</div>
+                <h3 className="text-lg font-bold text-white mb-2">인증 완료!</h3>
+                <p className="text-muted-foreground">
+                  아래 정보로 회원가입을 진행합니다.
                 </p>
               </div>
-              <Button
-                onClick={completeRegistration}
-                disabled={isLoading}
-                className="w-full bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90"
-              >
-                {isLoading ? '가입 중...' : '미션 시작하기'}
-              </Button>
+
+              <div className="bg-secondary/50 rounded-lg p-4 space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">이름:</span>
+                  <span className="text-white">{formData.name}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">휴대폰:</span>
+                  <span className="text-white">{formData.phone}</span>
+                </div>
+                {formData.branchCode && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">지점:</span>
+                    <span className="text-white">{formData.branchCode}</span>
+                  </div>
+                )}
+                {formData.referralCode && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">추천인:</span>
+                    <span className="text-white">{formData.referralCode}</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex space-x-2">
+                <Button
+                  onClick={() => setStep(2)}
+                  variant="outline"
+                  className="flex-1 border-border text-white hover:bg-secondary"
+                >
+                  수정
+                </Button>
+                <Button
+                  onClick={register}
+                  disabled={isLoading}
+                  className="flex-1 bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90"
+                >
+                  {isLoading ? '가입 중...' : '회원가입'}
+                </Button>
+              </div>
             </div>
           )}
-
-          {/* Login Link */}
-          <div className="text-center">
-            <p className="text-sm text-muted-foreground mb-2">
-              이미 계정이 있으신가요?
-            </p>
-            <button
-              onClick={() => router.push('/login')}
-              className="text-sm text-primary hover:text-primary/80 font-semibold"
-            >
-              로그인하기
-            </button>
-          </div>
-
-          {/* Back to Home */}
-          <div className="text-center">
-            <button
-              onClick={() => router.push('/')}
-              className="text-sm text-muted-foreground hover:text-white"
-            >
-              홈으로 돌아가기
-            </button>
-          </div>
         </CardContent>
       </Card>
     </div>
