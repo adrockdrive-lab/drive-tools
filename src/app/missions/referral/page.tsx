@@ -1,7 +1,6 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useAppStore } from '@/lib/store'
@@ -163,215 +162,208 @@ export default function ReferralMissionPage() {
     return referrals.filter(ref => ref.isVerified).length
   }
 
-
-
   if (!isAuthenticated || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">인증 확인 중...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">인증 확인 중...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
+      {/* Status Bar */}
+
+
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Button
-                variant="ghost"
-                onClick={() => router.push('/dashboard')}
-              >
-                ← 대시보드
-              </Button>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">
-                  👥 친구 추천 미션
-                </h1>
-                <p className="text-gray-600">친구 추천하고 5만원 받자!</p>
+      <div className="bg-gradient-to-br from-purple-500 to-purple-600 px-4 py-6 text-white">
+        <div className="flex items-center space-x-3 mb-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.push('/dashboard')}
+            className="text-white hover:bg-white/20 p-2"
+          >
+            ←
+          </Button>
+          <span className="text-3xl">👥</span>
+          <div>
+            <h1 className="text-xl font-bold">친구 추천 미션</h1>
+            <p className="text-white/80 text-sm">친구 추천하고 5만원 받자!</p>
+          </div>
+        </div>
+
+        <div className="glass rounded-2xl p-4">
+          <div className="text-white/80 text-sm">페이백 보상</div>
+          <div className="text-2xl font-bold">50,000원</div>
+          <div className="text-sm text-white/80">친구 1명당</div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="px-4 py-6 space-y-4">
+        {/* Progress Status */}
+        <div className="gradient-card rounded-2xl p-6 border border-border">
+          <div className="grid grid-cols-3 gap-4 text-center">
+            <div>
+              <div className="text-2xl font-bold text-primary mb-1">
+                {referrals.length}/3
               </div>
+              <div className="text-muted-foreground text-sm">등록된 친구</div>
             </div>
-            <div className="text-right">
-              <div className="text-2xl font-bold text-purple-600">50,000원</div>
-              <div className="text-sm text-gray-500">친구 1명당</div>
+            <div>
+              <div className="text-2xl font-bold text-green-400 mb-1">
+                {getVerifiedCount()}
+              </div>
+              <div className="text-muted-foreground text-sm">가입 완료</div>
+            </div>
+            <div>
+              <div className="text-2xl font-bold text-purple-400 mb-1">
+                {(getVerifiedCount() * 50000).toLocaleString()}원
+              </div>
+              <div className="text-muted-foreground text-sm">예상 페이백</div>
             </div>
           </div>
         </div>
-      </header>
 
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
-        <div className="max-w-2xl mx-auto">
-          {/* Progress Status */}
-          <Card className="mb-8">
-            <CardContent className="pt-6">
-              <div className="grid grid-cols-3 gap-4 text-center">
-                <div>
-                  <div className="text-2xl font-bold text-blue-600 mb-1">
-                    {referrals.length}/3
-                  </div>
-                  <div className="text-sm text-gray-500">등록된 친구</div>
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-green-600 mb-1">
-                    {getVerifiedCount()}
-                  </div>
-                  <div className="text-sm text-gray-500">가입 완료</div>
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-purple-600 mb-1">
-                    {(getVerifiedCount() * 50000).toLocaleString()}원
-                  </div>
-                  <div className="text-sm text-gray-500">예상 페이백</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        {/* Mission Details */}
+        <div className="gradient-card rounded-2xl p-6 border border-border">
+          <div className="mb-4">
+            <h2 className="text-xl font-bold text-white mb-2">미션 안내</h2>
+            <p className="text-muted-foreground">친구를 추천하고 함께 혜택을 받아보세요!</p>
+          </div>
 
-          {/* Mission Details */}
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle>미션 안내</CardTitle>
-              <CardDescription>
-                친구를 추천하고 함께 혜택을 받아보세요!
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <h4 className="font-semibold text-blue-900 mb-2">📋 참여 방법</h4>
-                <ul className="text-blue-800 text-sm space-y-1">
-                  <li>• 친구 정보 등록 (최대 3명)</li>
-                  <li>• 추천 링크를 친구에게 전달</li>
-                  <li>• 친구가 가입하면 페이백 지급</li>
-                </ul>
-              </div>
+          <div className="space-y-4">
+            <div className="bg-blue-500/20 p-4 rounded-xl">
+              <h4 className="font-semibold text-blue-400 mb-2">📋 참여 방법</h4>
+              <ul className="text-muted-foreground text-sm space-y-1">
+                <li>• 친구 정보 등록 (최대 3명)</li>
+                <li>• 추천 링크를 친구에게 전달</li>
+                <li>• 친구가 가입하면 페이백 지급</li>
+              </ul>
+            </div>
 
-              <div className="bg-green-50 p-4 rounded-lg">
-                <h4 className="font-semibold text-green-900 mb-2">🎁 혜택</h4>
-                <ul className="text-green-800 text-sm space-y-1">
-                  <li>• 친구 1명 가입당: 50,000원 페이백</li>
-                  <li>• 최대 3명까지 추천 가능</li>
-                  <li>• 총 최대 150,000원까지!</li>
-                </ul>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Referral Link */}
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle>나의 추천 링크</CardTitle>
-              <CardDescription>
-                이 링크를 친구들에게 공유해주세요.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex space-x-2">
-                <Input
-                  value={referralLink}
-                  readOnly
-                  className="flex-1"
-                />
-                <Button onClick={copyReferralLink}>
-                  복사
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Add Friend Form */}
-          {referrals.length < 3 && (
-            <Card className="mb-8">
-              <CardHeader>
-                <CardTitle>친구 추가</CardTitle>
-                <CardDescription>
-                  추천할 친구의 정보를 입력해주세요.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="name">친구 이름</Label>
-                    <Input
-                      id="name"
-                      type="text"
-                      placeholder="홍길동"
-                      value={newReferral.name}
-                      onChange={(e) => setNewReferral(prev => ({ ...prev, name: e.target.value }))}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="phone">휴대폰 번호</Label>
-                    <Input
-                      id="phone"
-                      type="tel"
-                      placeholder="010-0000-0000"
-                      value={newReferral.phone}
-                      onChange={(e) => {
-                        const value = e.target.value.replace(/[^\d]/g, '')
-                        const formatted = value.replace(/(\d{3})(\d{4})(\d{4})/, '010-$2-$3')
-                        setNewReferral(prev => ({ ...prev, phone: formatted }))
-                      }}
-                    />
-                  </div>
-                </div>
-                <Button
-                  onClick={addNewReferral}
-                  disabled={isSubmitting}
-                  className="w-full"
-                >
-                  {isSubmitting ? '추가 중...' : '친구 추가'}
-                </Button>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Friends List */}
-          {referrals.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>등록된 친구들</CardTitle>
-                <CardDescription>
-                  친구들의 가입 현황을 확인해보세요.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {referrals.map((referral) => (
-                    <div
-                      key={referral.id}
-                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                    >
-                      <div>
-                        <div className="font-semibold">{referral.refereeName}</div>
-                        <div className="text-sm text-gray-500">{referral.refereePhone}</div>
-                      </div>
-                      <div className="text-right">
-                        {referral.isVerified ? (
-                          <div>
-                            <div className="text-green-600 text-sm font-semibold">✓ 가입 완료</div>
-                            <div className="text-green-600 text-xs">50,000원 적립</div>
-                          </div>
-                        ) : (
-                          <div>
-                            <div className="text-yellow-600 text-sm font-semibold">⏳ 대기 중</div>
-                            <div className="text-gray-500 text-xs">가입 대기</div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
+            <div className="bg-green-500/20 p-4 rounded-xl">
+              <h4 className="font-semibold text-green-400 mb-2">🎁 혜택</h4>
+              <ul className="text-muted-foreground text-sm space-y-1">
+                <li>• 친구 1명 가입당: 50,000원 페이백</li>
+                <li>• 최대 3명까지 추천 가능</li>
+                <li>• 총 최대 150,000원까지!</li>
+              </ul>
+            </div>
+          </div>
         </div>
-      </main>
+
+        {/* Referral Link */}
+        <div className="gradient-card rounded-2xl p-6 border border-border">
+          <div className="mb-4">
+            <h2 className="text-xl font-bold text-white mb-2">나의 추천 링크</h2>
+            <p className="text-muted-foreground">이 링크를 친구들에게 공유해주세요.</p>
+          </div>
+
+          <div className="flex space-x-2">
+            <Input
+              value={referralLink}
+              readOnly
+              className="flex-1 bg-secondary/50 border-border text-white"
+            />
+            <Button onClick={copyReferralLink} className="bg-primary hover:bg-primary/90">
+              복사
+            </Button>
+          </div>
+        </div>
+
+        {/* Add Friend Form */}
+        {referrals.length < 3 && (
+          <div className="gradient-card rounded-2xl p-6 border border-border">
+            <div className="mb-4">
+              <h2 className="text-xl font-bold text-white mb-2">친구 추가</h2>
+              <p className="text-muted-foreground">추천할 친구의 정보를 입력해주세요.</p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 gap-4">
+                <div>
+                  <Label htmlFor="name" className="text-white">친구 이름</Label>
+                  <Input
+                    id="name"
+                    type="text"
+                    placeholder="홍길동"
+                    value={newReferral.name}
+                    onChange={(e) => setNewReferral(prev => ({ ...prev, name: e.target.value }))}
+                    className="bg-secondary/50 border-border text-white"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="phone" className="text-white">휴대폰 번호</Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    placeholder="010-0000-0000"
+                    value={newReferral.phone}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/[^\d]/g, '')
+                      const formatted = value.replace(/(\d{3})(\d{4})(\d{4})/, '010-$2-$3')
+                      setNewReferral(prev => ({ ...prev, phone: formatted }))
+                    }}
+                    className="bg-secondary/50 border-border text-white"
+                  />
+                </div>
+              </div>
+              <Button
+                onClick={addNewReferral}
+                disabled={isSubmitting}
+                className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700"
+              >
+                {isSubmitting ? '추가 중...' : '친구 추가'}
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Friends List */}
+        {referrals.length > 0 && (
+          <div className="gradient-card rounded-2xl p-6 border border-border">
+            <div className="mb-4">
+              <h2 className="text-xl font-bold text-white mb-2">등록된 친구들</h2>
+              <p className="text-muted-foreground">친구들의 가입 현황을 확인해보세요.</p>
+            </div>
+
+            <div className="space-y-3">
+              {referrals.map((referral) => (
+                <div
+                  key={referral.id}
+                  className="flex items-center justify-between p-3 bg-secondary/50 rounded-xl"
+                >
+                  <div>
+                    <div className="font-semibold text-white">{referral.refereeName}</div>
+                    <div className="text-sm text-muted-foreground">{referral.refereePhone}</div>
+                  </div>
+                  <div className="text-right">
+                    {referral.isVerified ? (
+                      <div>
+                        <div className="text-green-400 text-sm font-semibold">✓ 가입 완료</div>
+                        <div className="text-green-400 text-xs">50,000원 적립</div>
+                      </div>
+                    ) : (
+                      <div>
+                        <div className="text-yellow-400 text-sm font-semibold">⏳ 대기 중</div>
+                        <div className="text-muted-foreground text-xs">가입 대기</div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Bottom Spacing for Mobile */}
+        <div className="h-20"></div>
+      </div>
     </div>
   )
 }

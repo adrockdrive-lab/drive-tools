@@ -1,18 +1,17 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { useAppStore } from '@/lib/store'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { useAppStore } from '@/lib/store'
+import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
 export default function ReviewMissionPage() {
   const router = useRouter()
   const { user, isAuthenticated, userMissions, updateUserMission } = useAppStore()
-  
+
   const [reviews, setReviews] = useState({
     smartplace: '',
     drivelicense: '',
@@ -61,7 +60,7 @@ export default function ReviewMissionPage() {
 
   const validateForm = () => {
     const completedReviews = Object.values(reviews).filter(url => url.trim()).length
-    
+
     if (completedReviews < 3) {
       toast.error('3개 플랫폼 모두에 후기를 작성해주세요.')
       return false
@@ -98,7 +97,7 @@ export default function ReviewMissionPage() {
 
       // 미션 서비스 사용
       const { startMission, submitMissionProof } = await import('@/lib/services/missions')
-      
+
       if (currentMission) {
         // 기존 미션 증명 데이터 제출
         const { userMission, error } = await submitMissionProof(user.id, 3, proofData)
@@ -108,15 +107,15 @@ export default function ReviewMissionPage() {
         // 새 미션 시작 후 증명 데이터 제출
         const { userMission: newMission, error: startError } = await startMission(user.id, 3)
         if (startError || !newMission) throw new Error(startError || '미션 시작에 실패했습니다.')
-        
+
         const { userMission: completedMission, error: submitError } = await submitMissionProof(user.id, 3, proofData)
         if (submitError || !completedMission) throw new Error(submitError || '미션 제출에 실패했습니다.')
-        
+
         updateUserMission(completedMission)
       }
-      
+
       toast.success('미션이 제출되었습니다! 검토 후 커피쿠폰이 지급됩니다.')
-      
+
       setTimeout(() => {
         router.push('/dashboard')
       }, 2000)
@@ -135,164 +134,156 @@ export default function ReviewMissionPage() {
 
   if (!isAuthenticated || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">인증 확인 중...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">인증 확인 중...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
+      {/* Status Bar */}
+
+
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Button 
-                variant="ghost" 
-                onClick={() => router.push('/dashboard')}
-              >
-                ← 대시보드
-              </Button>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">
-                  📝 후기 쓰기 미션
-                </h1>
-                <p className="text-gray-600">진짜 후기, 진짜 혜택!</p>
-              </div>
+      <div className="bg-gradient-to-br from-orange-500 to-orange-600 px-4 py-6 text-white">
+        <div className="flex items-center space-x-3 mb-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.push('/dashboard')}
+            className="text-white hover:bg-white/20 p-2"
+          >
+            ←
+          </Button>
+          <span className="text-3xl">📝</span>
+          <div>
+            <h1 className="text-xl font-bold">후기 쓰기 미션</h1>
+            <p className="text-white/80 text-sm">진짜 후기, 진짜 혜택!</p>
+          </div>
+        </div>
+
+        <div className="glass rounded-2xl p-4">
+          <div className="text-white/80 text-sm">페이백 보상</div>
+          <div className="text-2xl font-bold">커피쿠폰</div>
+          <div className="text-sm text-white/80">+ 월 20만원 장학금 추첨</div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="px-4 py-6 space-y-4">
+        {/* Mission Status */}
+        {missionStatus !== 'pending' && (
+          <div className="gradient-card rounded-2xl p-6 text-center border border-border">
+            {missionStatus === 'completed' && (
+              <>
+                <div className="text-4xl mb-2">⏳</div>
+                <h3 className="text-lg font-semibold text-yellow-400 mb-2">검토 중</h3>
+                <p className="text-muted-foreground">제출하신 내용을 검토 중입니다. 검토 완료 후 커피쿠폰이 지급됩니다.</p>
+              </>
+            )}
+            {missionStatus === 'verified' && (
+              <>
+                <div className="text-4xl mb-2">☕</div>
+                <h3 className="text-lg font-semibold text-green-400 mb-2">미션 완료!</h3>
+                <p className="text-muted-foreground">축하합니다! 커피쿠폰이 지급되었습니다.</p>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* Progress Counter */}
+        {missionStatus === 'pending' && (
+          <div className="gradient-card rounded-2xl p-6 text-center border border-border">
+            <div className="text-4xl font-bold text-primary mb-2">
+              {getCompletedCount()}/3
             </div>
-            <div className="text-right">
-              <div className="text-2xl font-bold text-orange-600">커피쿠폰</div>
-              <div className="text-sm text-gray-500">+ 월 20만원 장학금 추첨</div>
+            <p className="text-muted-foreground">완료된 후기</p>
+          </div>
+        )}
+
+        {/* Mission Details */}
+        <div className="gradient-card rounded-2xl p-6 border border-border">
+          <div className="mb-4">
+            <h2 className="text-xl font-bold text-white mb-2">미션 안내</h2>
+            <p className="text-muted-foreground">3개 플랫폼에 진솔한 후기를 작성하고 혜택을 받아보세요!</p>
+          </div>
+
+          <div className="space-y-4">
+            <div className="bg-blue-500/20 p-4 rounded-xl">
+              <h4 className="font-semibold text-blue-400 mb-2">📋 참여 방법</h4>
+              <ul className="text-muted-foreground text-sm space-y-1">
+                <li>• 3개 플랫폼 모두에 후기 작성</li>
+                <li>• 실제 교육 경험을 바탕으로 한 진솔한 후기</li>
+                <li>• 각 플랫폼의 후기 링크 제출</li>
+              </ul>
+            </div>
+
+            <div className="bg-green-500/20 p-4 rounded-xl">
+              <h4 className="font-semibold text-green-400 mb-2">🎁 혜택</h4>
+              <ul className="text-muted-foreground text-sm space-y-1">
+                <li>• 즉시 지급: 커피쿠폰</li>
+                <li>• 추첨 혜택: 월 20만원 장학금 추첨</li>
+              </ul>
             </div>
           </div>
         </div>
-      </header>
 
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
-        <div className="max-w-2xl mx-auto">
-          {/* Mission Status */}
-          {missionStatus !== 'pending' && (
-            <Card className="mb-8">
-              <CardContent className="pt-6">
-                <div className="text-center">
-                  {missionStatus === 'completed' && (
-                    <>
-                      <div className="text-4xl mb-2">⏳</div>
-                      <h3 className="text-lg font-semibold text-yellow-600 mb-2">검토 중</h3>
-                      <p className="text-gray-600">제출하신 내용을 검토 중입니다. 검토 완료 후 커피쿠폰이 지급됩니다.</p>
-                    </>
-                  )}
-                  {missionStatus === 'verified' && (
-                    <>
-                      <div className="text-4xl mb-2">☕</div>
-                      <h3 className="text-lg font-semibold text-green-600 mb-2">미션 완료!</h3>
-                      <p className="text-gray-600">축하합니다! 커피쿠폰이 지급되었습니다.</p>
-                    </>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Progress Counter */}
-          {missionStatus === 'pending' && (
-            <Card className="mb-8">
-              <CardContent className="pt-6">
-                <div className="text-center">
-                  <div className="text-4xl font-bold text-blue-600 mb-2">
-                    {getCompletedCount()}/3
-                  </div>
-                  <p className="text-gray-600">완료된 후기</p>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Mission Details */}
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle>미션 안내</CardTitle>
-              <CardDescription>
-                3개 플랫폼에 진솔한 후기를 작성하고 혜택을 받아보세요!
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <h4 className="font-semibold text-blue-900 mb-2">📋 참여 방법</h4>
-                <ul className="text-blue-800 text-sm space-y-1">
-                  <li>• 3개 플랫폼 모두에 후기 작성</li>
-                  <li>• 실제 교육 경험을 바탕으로 한 진솔한 후기</li>
-                  <li>• 각 플랫폼의 후기 링크 제출</li>
-                </ul>
-              </div>
-              
-              <div className="bg-green-50 p-4 rounded-lg">
-                <h4 className="font-semibold text-green-900 mb-2">🎁 혜택</h4>
-                <ul className="text-green-800 text-sm space-y-1">
-                  <li>• 즉시 지급: 커피쿠폰</li>
-                  <li>• 추첨 혜택: 월 20만원 장학금 추첨</li>
-                </ul>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Review Forms */}
-          {missionStatus === 'pending' && (
-            <div className="space-y-6">
-              {platforms.map((platform, index) => (
-                <Card key={platform.key}>
-                  <CardHeader>
-                    <CardTitle className="flex items-center justify-between">
-                      <span>
-                        {index + 1}. {platform.name}
-                      </span>
-                      {reviews[platform.key] && (
-                        <span className="text-green-600 text-sm">✓ 완료</span>
-                      )}
-                    </CardTitle>
-                    <CardDescription>
+        {/* Review Forms */}
+        {missionStatus === 'pending' && (
+          <div className="space-y-4">
+            {platforms.map((platform, index) => (
+              <div key={platform.key} className="gradient-card rounded-2xl p-4 border border-border">
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <h3 className="font-bold text-white">
+                      {index + 1}. {platform.name}
+                    </h3>
+                    <p className="text-muted-foreground text-sm">
                       {platform.description}에서 후기를 작성하고 링크를 제출해주세요.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div>
-                      <Label htmlFor={platform.key}>후기 링크</Label>
-                      <Input
-                        id={platform.key}
-                        type="url"
-                        placeholder={platform.placeholder}
-                        value={reviews[platform.key]}
-                        onChange={(e) => handleReviewChange(platform.key, e.target.value)}
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    </p>
+                  </div>
+                  {reviews[platform.key] && (
+                    <span className="text-green-400 text-sm">✓ 완료</span>
+                  )}
+                </div>
 
-              {/* Submit Button */}
-              <Card>
-                <CardContent className="pt-6">
-                  <Button 
-                    onClick={submitMission}
-                    disabled={isSubmitting || getCompletedCount() < 3}
-                    className="w-full"
-                    size="lg"
-                  >
-                    {isSubmitting ? '제출 중...' : 
-                     getCompletedCount() < 3 ? `후기 ${3 - getCompletedCount()}개 더 필요` : 
-                     '미션 제출하기'}
-                  </Button>
-                </CardContent>
-              </Card>
+                <div>
+                  <Label htmlFor={platform.key} className="text-white">후기 링크</Label>
+                  <Input
+                    id={platform.key}
+                    type="url"
+                    placeholder={platform.placeholder}
+                    value={reviews[platform.key]}
+                    onChange={(e) => handleReviewChange(platform.key, e.target.value)}
+                    className="bg-secondary/50 border-border text-white"
+                  />
+                </div>
+              </div>
+            ))}
+
+            {/* Submit Button */}
+            <div className="gradient-card rounded-2xl p-6 border border-border">
+              <Button
+                onClick={submitMission}
+                disabled={isSubmitting || getCompletedCount() < 3}
+                className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700"
+                size="lg"
+              >
+                {isSubmitting ? '제출 중...' :
+                 getCompletedCount() < 3 ? `후기 ${3 - getCompletedCount()}개 더 필요` :
+                 '미션 제출하기'}
+              </Button>
             </div>
-          )}
-        </div>
-      </main>
+          </div>
+        )}
+
+        {/* Bottom Spacing for Mobile */}
+        <div className="h-20"></div>
+      </div>
     </div>
   )
 }

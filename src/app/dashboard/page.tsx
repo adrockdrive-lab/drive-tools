@@ -3,17 +3,25 @@
 import { GameDashboard } from '@/components/gamification/GameDashboard'
 import { useAppStore } from '@/lib/store'
 import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 export default function DashboardPage() {
   const router = useRouter()
+  const [isMounted, setIsMounted] = useState(false)
   const {
     isAuthenticated,
     isLoading,
     initializeApp
   } = useAppStore()
 
+  // 클라이언트 사이드에서만 실행되도록 보장
   useEffect(() => {
+    setIsMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (!isMounted) return
+
     if (!isAuthenticated) {
       router.push('/register')
       return
@@ -31,14 +39,19 @@ export default function DashboardPage() {
     }
 
     loadData()
-  }, [isAuthenticated, router, initializeApp])
+  }, [isMounted, isAuthenticated, router, initializeApp])
+
+  // 서버 사이드에서는 빈 화면 반환
+  if (!isMounted) {
+    return null
+  }
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">로그인 확인 중...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">로그인 확인 중...</p>
         </div>
       </div>
     )
@@ -46,10 +59,10 @@ export default function DashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">게임 대시보드 로딩 중...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">게임 대시보드 로딩 중...</p>
         </div>
       </div>
     )

@@ -1,18 +1,18 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { useAppStore } from '@/lib/store'
+import { FileUpload } from '@/components/mission/FileUpload'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { FileUpload } from '@/components/mission/FileUpload'
+import { useAppStore } from '@/lib/store'
+import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
 export default function ChallengeMissionPage() {
   const router = useRouter()
   const { user, isAuthenticated, userMissions, updateUserMission } = useAppStore()
-  
+
   const [studyHours, setStudyHours] = useState('')
   const [certificateUrl, setCertificateUrl] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -30,7 +30,7 @@ export default function ChallengeMissionPage() {
 
   const validateForm = () => {
     const hours = parseFloat(studyHours)
-    
+
     if (!studyHours || isNaN(hours)) {
       toast.error('교육시간을 입력해주세요.')
       return false
@@ -65,7 +65,7 @@ export default function ChallengeMissionPage() {
 
       // 미션 서비스 사용
       const { startMission, submitMissionProof } = await import('@/lib/services/missions')
-      
+
       if (currentMission) {
         // 기존 미션 증명 데이터 제출
         const { userMission, error } = await submitMissionProof(user.id, 1, proofData)
@@ -75,15 +75,15 @@ export default function ChallengeMissionPage() {
         // 새 미션 시작 후 증명 데이터 제출
         const { userMission: newMission, error: startError } = await startMission(user.id, 1)
         if (startError || !newMission) throw new Error(startError || '미션 시작에 실패했습니다.')
-        
+
         const { userMission: completedMission, error: submitError } = await submitMissionProof(user.id, 1, proofData)
         if (submitError || !completedMission) throw new Error(submitError || '미션 제출에 실패했습니다.')
-        
+
         updateUserMission(completedMission)
       }
-      
+
       toast.success('미션이 제출되었습니다! 검토 후 페이백이 지급됩니다.')
-      
+
       // 대시보드로 이동
       setTimeout(() => {
         router.push('/dashboard')
@@ -99,43 +99,46 @@ export default function ChallengeMissionPage() {
 
   if (!isAuthenticated || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">인증 확인 중...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">인증 확인 중...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
+      {/* Status Bar */}
+
+
       {/* Mobile Header */}
-      <div className="bg-gradient-to-br from-blue-600 to-blue-700 px-4 py-6 text-white">
+      <div className="bg-gradient-to-br from-primary to-purple-600 px-4 py-6 text-white">
         <div className="flex items-center space-x-3 mb-4">
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             size="sm"
             onClick={() => router.push('/dashboard')}
             className="text-white hover:bg-white/20 p-2"
           >
-            ← 
+            ←
           </Button>
           <span className="text-3xl">🏆</span>
           <div>
             <h1 className="text-xl font-bold">재능충 챌린지</h1>
-            <p className="text-blue-100 text-sm">14시간 이내 합격 도전!</p>
+            <p className="text-white/80 text-sm">14시간 이내 합격 도전!</p>
           </div>
         </div>
-        
-        <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4">
-          <div className="text-blue-100 text-sm">페이백 보상</div>
+
+        <div className="glass rounded-2xl p-4">
+          <div className="text-white/80 text-sm">페이백 보상</div>
           <div className="text-2xl font-bold">20,000원</div>
         </div>
       </div>
 
-      {/* Bento Grid Layout */}
-      <div className="p-4 space-y-4 max-w-4xl mx-auto">
+      {/* Content */}
+      <div className="px-4 py-6 space-y-4">
         {/* Status Card */}
         {missionStatus !== 'pending' && (
           <div className={`
@@ -149,22 +152,22 @@ export default function ChallengeMissionPage() {
               {missionStatus === 'completed' ? '검토 중' : '미션 완료!'}
             </h3>
             <p className="text-white/90 text-sm">
-              {missionStatus === 'completed' 
-                ? '제출하신 내용을 검토 중입니다. 검토 완료 후 페이백이 지급됩니다.' 
+              {missionStatus === 'completed'
+                ? '제출하신 내용을 검토 중입니다. 검토 완료 후 페이백이 지급됩니다.'
                 : '축하합니다! 20,000원 페이백이 지급되었습니다.'}
             </p>
           </div>
         )}
 
         {/* Info Cards Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4">
           {/* 참여 조건 */}
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+          <div className="gradient-card rounded-2xl p-4 border border-border">
             <div className="flex items-center space-x-2 mb-3">
               <span className="text-xl">📋</span>
-              <h3 className="font-bold text-gray-900">참여 조건</h3>
+              <h3 className="font-bold text-white">참여 조건</h3>
             </div>
-            <div className="space-y-1 text-sm text-gray-600">
+            <div className="space-y-1 text-sm text-muted-foreground">
               <div>• 교육시간 14시간 이내</div>
               <div>• 합격증 사진 제출</div>
               <div>• 실제 교육시간 입력</div>
@@ -172,24 +175,24 @@ export default function ChallengeMissionPage() {
           </div>
 
           {/* 혜택 */}
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+          <div className="gradient-card rounded-2xl p-4 border border-border">
             <div className="flex items-center space-x-2 mb-3">
               <span className="text-xl">🎁</span>
-              <h3 className="font-bold text-gray-900">혜택</h3>
+              <h3 className="font-bold text-white">혜택</h3>
             </div>
-            <div className="space-y-1 text-sm text-gray-600">
+            <div className="space-y-1 text-sm text-muted-foreground">
               <div>• 페이백 20,000원</div>
               <div>• 매달 30만원 추첨</div>
             </div>
           </div>
 
           {/* 주의사항 */}
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+          <div className="gradient-card rounded-2xl p-4 border border-border">
             <div className="flex items-center space-x-2 mb-3">
               <span className="text-xl">⚠️</span>
-              <h3 className="font-bold text-gray-900">주의사항</h3>
+              <h3 className="font-bold text-white">주의사항</h3>
             </div>
-            <div className="space-y-1 text-sm text-gray-600">
+            <div className="space-y-1 text-sm text-muted-foreground">
               <div>• 허위 정보 시 취소</div>
               <div>• 검토 후 지급 (3-5일)</div>
             </div>
@@ -198,19 +201,19 @@ export default function ChallengeMissionPage() {
 
         {/* Submission Form */}
         {missionStatus === 'pending' && (
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+          <div className="gradient-card rounded-2xl p-6 border border-border">
             <div className="flex items-center space-x-2 mb-6">
               <span className="text-2xl">✅</span>
               <div>
-                <h2 className="text-xl font-bold text-gray-900">미션 인증</h2>
-                <p className="text-gray-600 text-sm">교육시간과 합격 인증서를 제출해주세요</p>
+                <h2 className="text-xl font-bold text-white">미션 인증</h2>
+                <p className="text-muted-foreground text-sm">교육시간과 합격 인증서를 제출해주세요</p>
               </div>
             </div>
 
             <div className="space-y-6">
               {/* Study Hours Input */}
-              <div className="bg-gray-50 rounded-xl p-4">
-                <Label htmlFor="studyHours" className="text-sm font-medium text-gray-700">
+              <div className="bg-secondary/50 rounded-xl p-4">
+                <Label htmlFor="studyHours" className="text-sm font-medium text-white">
                   교육시간 (시간)
                 </Label>
                 <Input
@@ -222,16 +225,16 @@ export default function ChallengeMissionPage() {
                   placeholder="예: 12.5"
                   value={studyHours}
                   onChange={(e) => setStudyHours(e.target.value)}
-                  className="mt-2 border-0 bg-white shadow-sm"
+                  className="mt-2 border-border bg-secondary/50 text-white"
                 />
-                <p className="text-xs text-gray-500 mt-2">
+                <p className="text-xs text-muted-foreground mt-2">
                   실제 수강한 교육시간을 정확히 입력해주세요 (최대 14시간)
                 </p>
               </div>
 
               {/* File Upload */}
-              <div className="bg-gray-50 rounded-xl p-4">
-                <Label className="text-sm font-medium text-gray-700 mb-2 block">
+              <div className="bg-secondary/50 rounded-xl p-4">
+                <Label className="text-sm font-medium text-white mb-2 block">
                   합격 인증서
                 </Label>
                 <FileUpload
@@ -241,16 +244,16 @@ export default function ChallengeMissionPage() {
                   placeholder="합격증 또는 면허증 파일을 업로드하세요"
                   disabled={isSubmitting}
                 />
-                <p className="text-xs text-gray-500 mt-2">
+                <p className="text-xs text-muted-foreground mt-2">
                   운전면허 합격 인증서 파일을 업로드해주세요 (JPG, PNG, WebP, PDF)
                 </p>
               </div>
 
               {/* Submit Button */}
-              <Button 
+              <Button
                 onClick={submitMission}
                 disabled={isSubmitting}
-                className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
+                className="w-full bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90"
                 size="lg"
               >
                 {isSubmitting ? '제출 중...' : '미션 제출하기 🚀'}

@@ -2,7 +2,6 @@
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAppStore } from '@/lib/store'
 import { Calendar, Flame, Gift } from 'lucide-react'
 import { useRouter } from 'next/navigation'
@@ -177,10 +176,10 @@ export default function AttendanceMissionPage() {
 
   if (!isAuthenticated || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">인증 확인 중...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">인증 확인 중...</p>
         </div>
       </div>
     )
@@ -189,198 +188,189 @@ export default function AttendanceMissionPage() {
   const nextReward = getNextRewardInfo()
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-yellow-50">
+    <div className="min-h-screen bg-background">
+      {/* Status Bar */}
+
+
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Button
-                variant="ghost"
-                onClick={() => router.push('/dashboard')}
-              >
-                ← 대시보드
-              </Button>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">
-                  📅 출석체크 미션
-                </h1>
-                <p className="text-gray-600">매일 출석하고 보상 받기!</p>
-              </div>
-            </div>
-            <div className="text-right">
-              <div className="text-2xl font-bold text-orange-600">
-                {attendanceData.monthlyReward.toLocaleString()}원
-              </div>
-              <div className="text-sm text-gray-500">이번 달 적립</div>
-            </div>
+      <div className="bg-gradient-to-br from-orange-500 to-yellow-500 px-4 py-6 text-white">
+        <div className="flex items-center space-x-3 mb-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.push('/dashboard')}
+            className="text-white hover:bg-white/20 p-2"
+          >
+            ←
+          </Button>
+          <span className="text-3xl">📅</span>
+          <div>
+            <h1 className="text-xl font-bold">출석체크 미션</h1>
+            <p className="text-white/80 text-sm">매일 출석하고 보상 받기!</p>
           </div>
         </div>
-      </header>
+
+        <div className="glass rounded-2xl p-4">
+          <div className="text-white/80 text-sm">이번 달 적립</div>
+          <div className="text-2xl font-bold">
+            {attendanceData.monthlyReward.toLocaleString()}원
+          </div>
+        </div>
+      </div>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
-        <div className="max-w-2xl mx-auto space-y-8">
-          {/* Today's Check-in */}
-          <Card className="relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-r from-orange-400/10 to-yellow-400/10" />
-            <CardContent className="pt-8 relative">
-              <div className="text-center">
-                <div className="text-6xl mb-4">
-                  {attendanceData.todayChecked ? '✅' : '📅'}
-                </div>
-                <h2 className="text-2xl font-bold mb-2">
-                  {attendanceData.todayChecked ? '오늘 출석 완료!' : '오늘 출석하기'}
-                </h2>
-                <p className="text-gray-600 mb-6">
-                  {getStreakMessage()}
+      <div className="px-4 py-6 space-y-4">
+        {/* Today's Check-in */}
+        <div className="gradient-card rounded-2xl p-6 border border-border relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-orange-400/10 to-yellow-400/10" />
+          <div className="relative text-center">
+            <div className="text-6xl mb-4">
+              {attendanceData.todayChecked ? '✅' : '📅'}
+            </div>
+            <h2 className="text-2xl font-bold mb-2 text-white">
+              {attendanceData.todayChecked ? '오늘 출석 완료!' : '오늘 출석하기'}
+            </h2>
+            <p className="text-muted-foreground mb-6">
+              {getStreakMessage()}
+            </p>
+
+            {!attendanceData.todayChecked ? (
+              <Button
+                onClick={checkAttendance}
+                disabled={isChecking}
+                size="lg"
+                className="bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600"
+              >
+                {isChecking ? '출석 중...' : '출석체크 하기'}
+              </Button>
+            ) : (
+              <div className="space-y-2">
+                <Badge variant="secondary" className="bg-green-500/20 text-green-400 border-green-500/30">
+                  오늘 출석 완료 ✨
+                </Badge>
+                <p className="text-sm text-muted-foreground">
+                  내일도 출석해서 연속 기록을 이어가세요!
                 </p>
-
-                {!attendanceData.todayChecked ? (
-                  <Button
-                    onClick={checkAttendance}
-                    disabled={isChecking}
-                    size="lg"
-                    className="bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600"
-                  >
-                    {isChecking ? '출석 중...' : '출석체크 하기'}
-                  </Button>
-                ) : (
-                  <div className="space-y-2">
-                    <Badge variant="secondary" className="bg-green-100 text-green-800">
-                      오늘 출석 완료 ✨
-                    </Badge>
-                    <p className="text-sm text-gray-500">
-                      내일도 출석해서 연속 기록을 이어가세요!
-                    </p>
-                  </div>
-                )}
               </div>
-            </CardContent>
-          </Card>
+            )}
+          </div>
+        </div>
 
-          {/* Weekly Progress */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Calendar className="h-5 w-5" />
-                <span>이번 주 출석</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-7 gap-2">
-                {attendanceData.weeklyProgress.map((checked, index) => (
-                  <div
-                    key={index}
-                    className={`aspect-square rounded-lg border-2 flex items-center justify-center text-sm font-semibold ${
-                      checked
-                        ? 'bg-green-100 border-green-300 text-green-800'
-                        : 'bg-gray-100 border-gray-300 text-gray-500'
-                    }`}
-                  >
-                    <div className="text-center">
-                      <div>{getDayName(index)}</div>
-                      <div className="text-xs mt-1">
-                        {checked ? '✓' : '-'}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            <Card>
-              <CardContent className="pt-6 text-center">
-                <Flame className="h-8 w-8 text-orange-500 mx-auto mb-2" />
-                <div className="text-2xl font-bold text-orange-600">
-                  {attendanceData.consecutiveDays}
-                </div>
-                <div className="text-sm text-gray-500">연속 출석</div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="pt-6 text-center">
-                <Calendar className="h-8 w-8 text-blue-500 mx-auto mb-2" />
-                <div className="text-2xl font-bold text-blue-600">
-                  {attendanceData.totalDays}
-                </div>
-                <div className="text-sm text-gray-500">총 출석일</div>
-              </CardContent>
-            </Card>
-
-            <Card className="md:col-span-1 col-span-2">
-              <CardContent className="pt-6 text-center">
-                <Gift className="h-8 w-8 text-green-500 mx-auto mb-2" />
-                <div className="text-2xl font-bold text-green-600">
-                  {attendanceData.monthlyReward.toLocaleString()}원
-                </div>
-                <div className="text-sm text-gray-500">이번 달 적립</div>
-              </CardContent>
-            </Card>
+        {/* Weekly Progress */}
+        <div className="gradient-card rounded-2xl p-6 border border-border">
+          <div className="flex items-center space-x-2 mb-4">
+            <Calendar className="h-5 w-5 text-white" />
+            <h3 className="text-xl font-bold text-white">이번 주 출석</h3>
           </div>
 
-          {/* Next Milestone */}
-          {nextReward && (
-            <Card>
-              <CardHeader>
-                <CardTitle>다음 목표</CardTitle>
-              </CardHeader>
-              <CardContent>
+          <div className="grid grid-cols-7 gap-2">
+            {attendanceData.weeklyProgress.map((checked, index) => (
+              <div
+                key={index}
+                className={`aspect-square rounded-lg border-2 flex items-center justify-center text-sm font-semibold ${
+                  checked
+                    ? 'bg-green-500/20 border-green-500/30 text-green-400'
+                    : 'bg-secondary/50 border-border text-muted-foreground'
+                }`}
+              >
                 <div className="text-center">
-                  <p className="text-gray-600 mb-2">
-                    {nextReward.days}일 더 출석하면
-                  </p>
-                  <div className="text-xl font-bold text-purple-600">
-                    +{nextReward.reward.toLocaleString()}원 보너스
+                  <div>{getDayName(index)}</div>
+                  <div className="text-xs mt-1">
+                    {checked ? '✓' : '-'}
                   </div>
-                  <p className="text-sm text-gray-500 mt-1">
-                    {nextReward.milestone}일 연속 출석 달성!
-                  </p>
                 </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Mission Guide */}
-          <Card>
-            <CardHeader>
-              <CardTitle>출석체크 안내</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <h4 className="font-semibold text-blue-900 mb-2">💰 보상 체계</h4>
-                <ul className="text-blue-800 text-sm space-y-1">
-                  <li>• 기본 보상: 1,000원/일</li>
-                  <li>• 연속 보너스: +100원/일 (최대 1,000원)</li>
-                  <li>• 주간 보너스: 7일 연속시 추가 보상</li>
-                </ul>
               </div>
-
-              <div className="bg-green-50 p-4 rounded-lg">
-                <h4 className="font-semibold text-green-900 mb-2">🏆 달성 혜택</h4>
-                <ul className="text-green-800 text-sm space-y-1">
-                  <li>• 7일 연속: 5,000원 추가</li>
-                  <li>• 30일 연속: 20,000원 추가</li>
-                  <li>• 매월 최대 30,000원 적립 가능</li>
-                </ul>
-              </div>
-
-              <div className="bg-yellow-50 p-4 rounded-lg">
-                <h4 className="font-semibold text-yellow-900 mb-2">📝 참여 방법</h4>
-                <ul className="text-yellow-800 text-sm space-y-1">
-                  <li>• 매일 한 번씩 출석체크 버튼 클릭</li>
-                  <li>• 자정이 지나면 새로운 출석 가능</li>
-                  <li>• 연속 출석으로 더 큰 보상 획득</li>
-                </ul>
-              </div>
-            </CardContent>
-          </Card>
+            ))}
+          </div>
         </div>
-      </main>
+
+        {/* Stats */}
+        <div className="grid grid-cols-3 gap-4">
+          <div className="gradient-card rounded-2xl p-4 border border-border text-center">
+            <Flame className="h-8 w-8 text-orange-400 mx-auto mb-2" />
+            <div className="text-2xl font-bold text-orange-400">
+              {attendanceData.consecutiveDays}
+            </div>
+            <div className="text-sm text-muted-foreground">연속 출석</div>
+          </div>
+
+          <div className="gradient-card rounded-2xl p-4 border border-border text-center">
+            <Calendar className="h-8 w-8 text-blue-400 mx-auto mb-2" />
+            <div className="text-2xl font-bold text-blue-400">
+              {attendanceData.totalDays}
+            </div>
+            <div className="text-sm text-muted-foreground">총 출석일</div>
+          </div>
+
+          <div className="gradient-card rounded-2xl p-4 border border-border text-center">
+            <Gift className="h-8 w-8 text-green-400 mx-auto mb-2" />
+            <div className="text-2xl font-bold text-green-400">
+              {attendanceData.monthlyReward.toLocaleString()}원
+            </div>
+            <div className="text-sm text-muted-foreground">이번 달 적립</div>
+          </div>
+        </div>
+
+        {/* Next Milestone */}
+        {nextReward && (
+          <div className="gradient-card rounded-2xl p-6 border border-border">
+            <div className="mb-4">
+              <h3 className="text-xl font-bold text-white">다음 목표</h3>
+            </div>
+
+            <div className="text-center">
+              <p className="text-muted-foreground mb-2">
+                {nextReward.days}일 더 출석하면
+              </p>
+              <div className="text-xl font-bold text-purple-400">
+                +{nextReward.reward.toLocaleString()}원 보너스
+              </div>
+              <p className="text-sm text-muted-foreground mt-1">
+                {nextReward.milestone}일 연속 출석 달성!
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Mission Guide */}
+        <div className="gradient-card rounded-2xl p-6 border border-border">
+          <div className="mb-4">
+            <h3 className="text-xl font-bold text-white">출석체크 안내</h3>
+          </div>
+
+          <div className="space-y-4">
+            <div className="bg-blue-500/20 p-4 rounded-xl">
+              <h4 className="font-semibold text-blue-400 mb-2">💰 보상 체계</h4>
+              <ul className="text-muted-foreground text-sm space-y-1">
+                <li>• 기본 보상: 1,000원/일</li>
+                <li>• 연속 보너스: +100원/일 (최대 1,000원)</li>
+                <li>• 주간 보너스: 7일 연속시 추가 보상</li>
+              </ul>
+            </div>
+
+            <div className="bg-green-500/20 p-4 rounded-xl">
+              <h4 className="font-semibold text-green-400 mb-2">🏆 달성 혜택</h4>
+              <ul className="text-muted-foreground text-sm space-y-1">
+                <li>• 7일 연속: 5,000원 추가</li>
+                <li>• 30일 연속: 20,000원 추가</li>
+                <li>• 매월 최대 30,000원 적립 가능</li>
+              </ul>
+            </div>
+
+            <div className="bg-yellow-500/20 p-4 rounded-xl">
+              <h4 className="font-semibold text-yellow-400 mb-2">📝 참여 방법</h4>
+              <ul className="text-muted-foreground text-sm space-y-1">
+                <li>• 매일 한 번씩 출석체크 버튼 클릭</li>
+                <li>• 자정이 지나면 새로운 출석 가능</li>
+                <li>• 연속 출석으로 더 큰 보상 획득</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom Spacing for Mobile */}
+        <div className="h-20"></div>
+      </div>
     </div>
   )
 }

@@ -185,23 +185,26 @@ export default function RegisterPage() {
 
   if (isAuthenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">대시보드로 이동 중...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">대시보드로 이동 중...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      {/* Status Bar */}
+      <div className="h-6 bg-background absolute top-0 left-0 right-0"></div>
+
+      <Card className="w-full max-w-md gradient-card border-border">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl">
+          <CardTitle className="text-2xl text-white">
             🚗 드라이빙존 회원가입
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-muted-foreground">
             미션 페이백 혜택을 받기 위해 가입해주세요
           </CardDescription>
         </CardHeader>
@@ -209,19 +212,19 @@ export default function RegisterPage() {
           {/* Progress Indicator */}
           <div className="flex items-center justify-center space-x-4">
             <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
-              step >= 1 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'
+              step >= 1 ? 'bg-primary text-white' : 'bg-secondary text-muted-foreground'
             }`}>
               1
             </div>
-            <div className={`h-1 w-8 ${step >= 2 ? 'bg-blue-600' : 'bg-gray-200'}`}></div>
+            <div className={`h-1 w-8 ${step >= 2 ? 'bg-primary' : 'bg-secondary'}`}></div>
             <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
-              step >= 2 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'
+              step >= 2 ? 'bg-primary text-white' : 'bg-secondary text-muted-foreground'
             }`}>
               2
             </div>
-            <div className={`h-1 w-8 ${step >= 3 ? 'bg-blue-600' : 'bg-gray-200'}`}></div>
+            <div className={`h-1 w-8 ${step >= 3 ? 'bg-primary' : 'bg-secondary'}`}></div>
             <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
-              step >= 3 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'
+              step >= 3 ? 'bg-primary text-white' : 'bg-secondary text-muted-foreground'
             }`}>
               3
             </div>
@@ -231,17 +234,18 @@ export default function RegisterPage() {
           {step === 1 && (
             <div className="space-y-4">
               <div>
-                <Label htmlFor="name">이름</Label>
+                <Label htmlFor="name" className="text-white">이름</Label>
                 <Input
                   id="name"
                   type="text"
                   placeholder="실명을 입력해주세요"
                   value={formData.name}
                   onChange={(e) => handleInputChange('name', e.target.value)}
+                  className="bg-secondary/50 border-border text-white"
                 />
               </div>
               <div>
-                <Label htmlFor="phone">휴대폰 번호</Label>
+                <Label htmlFor="phone" className="text-white">휴대폰 번호</Label>
                 <Input
                   id="phone"
                   type="tel"
@@ -252,20 +256,22 @@ export default function RegisterPage() {
                     const formatted = value.replace(/(\d{3})(\d{4})(\d{4})/, '010-$2-$3')
                     handleInputChange('phone', formatted)
                   }}
+                  className="bg-secondary/50 border-border text-white"
                 />
               </div>
 
               <div>
-                <Label htmlFor="referralCode">추천인 코드 (선택)</Label>
+                <Label htmlFor="referralCode" className="text-white">추천인 코드 (선택)</Label>
                 <Input
                   id="referralCode"
                   type="text"
                   placeholder="친구의 추천 코드를 입력하세요"
                   value={formData.referralCode}
                   onChange={(e) => handleInputChange('referralCode', e.target.value.toUpperCase())}
+                  className="bg-secondary/50 border-border text-white"
                 />
                 {formData.referralCode && (
-                  <p className="text-xs text-green-600 mt-1">
+                  <p className="text-xs text-green-400 mt-1">
                     ✓ 추천 코드가 입력되었습니다. 추가 혜택을 받으실 수 있습니다!
                   </p>
                 )}
@@ -273,7 +279,7 @@ export default function RegisterPage() {
               <Button
                 onClick={sendVerificationCode}
                 disabled={isLoading}
-                className="w-full"
+                className="w-full bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90"
               >
                 {isLoading ? '발송 중...' : '인증번호 발송'}
               </Button>
@@ -284,13 +290,13 @@ export default function RegisterPage() {
           {step === 2 && (
             <div className="space-y-4">
               <div className="text-center">
-                <p className="text-sm text-gray-600 mb-2">
-                  <span className="font-semibold">{formData.phone}</span>로<br />
+                <p className="text-sm text-muted-foreground mb-2">
+                  <span className="font-semibold text-white">{formData.phone}</span>로<br />
                   인증번호를 발송했습니다.
                 </p>
               </div>
               <div>
-                <Label htmlFor="code">인증번호</Label>
+                <Label htmlFor="code" className="text-white">인증번호</Label>
                 <Input
                   id="code"
                   type="text"
@@ -298,16 +304,17 @@ export default function RegisterPage() {
                   value={verificationCode}
                   onChange={(e) => setVerificationCode(e.target.value)}
                   maxLength={6}
+                  className="bg-secondary/50 border-border text-white"
                 />
               </div>
               <div className="flex justify-between items-center text-sm">
-                <span className="text-gray-500">
+                <span className="text-muted-foreground">
                   {countdown > 0 ? `남은 시간: ${formatTime(countdown)}` : '시간 만료'}
                 </span>
                 <button
                   onClick={resendCode}
                   disabled={countdown > 0}
-                  className="text-blue-600 hover:text-blue-800 disabled:text-gray-400 disabled:cursor-not-allowed"
+                  className="text-primary hover:text-primary/80 disabled:text-muted-foreground disabled:cursor-not-allowed"
                 >
                   재발송
                 </button>
@@ -316,14 +323,14 @@ export default function RegisterPage() {
                 <Button
                   variant="outline"
                   onClick={() => setStep(1)}
-                  className="flex-1"
+                  className="flex-1 border-border text-white hover:bg-secondary"
                 >
                   이전
                 </Button>
                 <Button
                   onClick={verifyCode}
                   disabled={isLoading}
-                  className="flex-1"
+                  className="flex-1 bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90"
                 >
                   {isLoading ? '확인 중...' : '인증 확인'}
                 </Button>
@@ -336,15 +343,15 @@ export default function RegisterPage() {
             <div className="space-y-4 text-center">
               <div className="text-6xl">🎉</div>
               <div>
-                <h3 className="text-xl font-semibold mb-2">인증 완료!</h3>
-                <p className="text-gray-600 text-sm mb-4">
+                <h3 className="text-xl font-semibold mb-2 text-white">인증 완료!</h3>
+                <p className="text-muted-foreground text-sm mb-4">
                   이제 드라이빙존 미션에 참여하실 수 있습니다.
                 </p>
               </div>
               <Button
                 onClick={completeRegistration}
                 disabled={isLoading}
-                className="w-full"
+                className="w-full bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90"
               >
                 {isLoading ? '가입 중...' : '미션 시작하기'}
               </Button>
@@ -353,12 +360,12 @@ export default function RegisterPage() {
 
           {/* Login Link */}
           <div className="text-center">
-            <p className="text-sm text-gray-600 mb-2">
+            <p className="text-sm text-muted-foreground mb-2">
               이미 계정이 있으신가요?
             </p>
             <button
               onClick={() => router.push('/login')}
-              className="text-sm text-blue-600 hover:text-blue-800 font-semibold"
+              className="text-sm text-primary hover:text-primary/80 font-semibold"
             >
               로그인하기
             </button>
@@ -368,7 +375,7 @@ export default function RegisterPage() {
           <div className="text-center">
             <button
               onClick={() => router.push('/')}
-              className="text-sm text-gray-500 hover:text-gray-700"
+              className="text-sm text-muted-foreground hover:text-white"
             >
               홈으로 돌아가기
             </button>

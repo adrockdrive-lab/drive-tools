@@ -12,25 +12,27 @@ import { Separator } from '@/components/ui/separator';
 import { useAppStore } from '@/lib/store';
 import { motion } from 'framer-motion';
 import {
-  ArrowLeft,
-  Award,
-  Calendar,
-  CheckCircle,
-  Clock,
-  Coins,
-  Copy,
-  Phone,
-  Share2,
-  Target,
-  TrendingUp,
-  Trophy,
-  Users
+    ArrowLeft,
+    Award,
+    Calendar,
+    CheckCircle,
+    Clock,
+    Coins,
+    Copy,
+    Phone,
+    Share2,
+    Target,
+    TrendingUp,
+    Trophy,
+    Users
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 export default function ProfilePage() {
   const router = useRouter();
+  const [isMounted, setIsMounted] = useState(false);
     const {
     user,
     missions,
@@ -38,6 +40,16 @@ export default function ProfilePage() {
     paybacks,
     isAuthenticated
   } = useAppStore();
+
+  // 클라이언트 사이드에서만 실행되도록 보장
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // 서버 사이드에서는 빈 화면 반환
+  if (!isMounted) {
+    return null;
+  }
 
   // 인증되지 않은 사용자 처리
   if (!isAuthenticated || !user) {
@@ -86,7 +98,7 @@ export default function ProfilePage() {
 
   // 레퍼럴 링크 복사 함수
   const copyReferralLink = async () => {
-    if (user?.referralCode) {
+    if (user?.referralCode && typeof window !== 'undefined') {
       const referralLink = `${window.location.origin}/register?referral=${user.referralCode}`;
       try {
         await navigator.clipboard.writeText(referralLink);
@@ -99,7 +111,7 @@ export default function ProfilePage() {
 
   // 레퍼럴 링크 공유 함수
   const shareReferralLink = async () => {
-    if (user?.referralCode) {
+    if (user?.referralCode && typeof window !== 'undefined') {
       const referralLink = `${window.location.origin}/register?referral=${user.referralCode}`;
 
       if (navigator.share) {
@@ -380,7 +392,7 @@ export default function ProfilePage() {
                   </label>
                   <div className="flex items-center space-x-2">
                     <Input
-                      value={user?.referralCode ? `${typeof window !== 'undefined' ? window.location.origin : ''}/register?referral=${user.referralCode}` : ''}
+                      value={user?.referralCode ? `${typeof window !== 'undefined' ? window.location.origin : 'https://driving-zone.vercel.app'}/register?referral=${user.referralCode}` : ''}
                       readOnly
                       className="text-sm bg-gray-50 dark:bg-gray-800"
                     />
