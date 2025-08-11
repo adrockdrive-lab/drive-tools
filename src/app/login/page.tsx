@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useAppStore } from '@/lib/store'
 import { motion } from 'framer-motion'
-import { ArrowRight, Coins, Phone, Target, Trophy, User } from 'lucide-react'
+import { ArrowRight, Coins, Phone, Target, Trophy, User as UserIcon } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
@@ -14,9 +14,11 @@ import { toast } from 'sonner'
 
 export default function LoginPage() {
   const router = useRouter()
-  const { isAuthenticated, login } = useAppStore()
+  const { isAuthenticated } = useAppStore()
   const [phone, setPhone] = useState('')
+  const [verificationCode, setVerificationCode] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [codeSent, setCodeSent] = useState(false)
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -41,23 +43,64 @@ export default function LoginPage() {
     return true
   }
 
-  const handleLogin = async () => {
+  const handleSendCode = async () => {
     if (!validatePhone()) return
 
     setIsLoading(true)
     try {
-      const formattedPhone = phone.replace(/[^\d]/g, '').replace(/(\d{3})(\d{4})(\d{4})/, '010-$2-$3')
-      await login(formattedPhone)
+      const { authService } = await import('@/lib/services/auth')
+      const result = await authService.sendVerificationCode(phone)
 
-      toast.success('로그인 성공!')
-      router.push('/dashboard')
+      if (result.success) {
+        setCodeSent(true)
+        toast.success('인증 코드가 전송되었습니다.')
+      } else {
+        toast.error(result.error || '인증 코드 전송에 실패했습니다.')
+      }
+    } catch (error) {
+      console.error('Send code error:', error)
+      toast.error('인증 코드 전송에 실패했습니다.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleLogin = async () => {
+    if (!validatePhone()) return
+    if (!verificationCode.trim()) {
+      toast.error('인증 코드를 입력해주세요.')
+      return
+    }
+
+    setIsLoading(true)
+    try {
+      const { authService } = await import('@/lib/services/auth')
+      const result = await authService.login({
+        phone,
+        verificationCode
+      })
+
+      if (result.success && result.user) {
+        console.log('Auth service login successful:', result.user)
+
+        // Store의 login 함수 사용
+        const { login } = useAppStore.getState()
+        console.log('Calling store login function...')
+        await login(phone)
+
+        console.log('Store login completed. Current state:', {
+          user: useAppStore.getState().user,
+          isAuthenticated: useAppStore.getState().isAuthenticated
+        })
+
+        toast.success('로그인 성공!')
+        router.push('/dashboard')
+      } else {
+        toast.error(result.error || '로그인에 실패했습니다.')
+      }
     } catch (error) {
       console.error('Login error:', error)
-      if (error instanceof Error && error.message.includes('User not found')) {
-        toast.error('가입되지 않은 전화번호입니다. 회원가입을 먼저 진행해주세요.')
-      } else {
-        toast.error('로그인에 실패했습니다.')
-      }
+      toast.error('로그인에 실패했습니다.')
     } finally {
       setIsLoading(false)
     }
@@ -84,7 +127,7 @@ export default function LoginPage() {
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       {/* Status Bar */}
       <div className="h-6 bg-background absolute top-0 left-0 right-0"></div>
-      
+
       <div className="w-full max-w-md">
         {/* 로고 및 헤더 */}
         <motion.div
@@ -116,7 +159,7 @@ export default function LoginPage() {
           <Card className="gradient-card border-border">
             <CardHeader className="text-center pb-4">
               <CardTitle className="flex items-center justify-center space-x-2 text-white">
-                <User className="w-5 h-5" />
+                <UserIcon className="w-5 h-5" />
                 <span>로그인</span>
               </CardTitle>
               <CardDescription className="text-muted-foreground">
@@ -142,36 +185,84 @@ export default function LoginPage() {
                   }}
                   onKeyPress={handleKeyPress}
                   maxLength={13}
-                  disabled={isLoading}
+                  disabled={isLoading || codeSent}
                 />
                 <p className="text-sm text-muted-foreground mt-1">
                   회원가입 시 등록한 휴대폰 번호를 입력해주세요
                 </p>
               </div>
 
-              <motion.div
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <Button
-                  onClick={handleLogin}
-                  disabled={isLoading}
-                  className="w-full h-12 text-lg bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 transition-all duration-300"
-                  size="lg"
+              {!codeSent ? (
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                 >
-                  {isLoading ? (
-                    <div className="flex items-center space-x-2">
-                      <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                      <span>로그인 중...</span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center space-x-2">
-                      <span>로그인</span>
-                      <ArrowRight className="w-5 h-5" />
-                    </div>
-                  )}
-                </Button>
-              </motion.div>
+                  <Button
+                    onClick={handleSendCode}
+                    disabled={isLoading}
+                    className="w-full h-12 text-lg bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-600/90 hover:to-blue-700/90 transition-all duration-300"
+                    size="lg"
+                  >
+                    {isLoading ? (
+                      <div className="flex items-center space-x-2">
+                        <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                        <span>인증 코드 전송 중...</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center space-x-2">
+                        <span>인증 코드 받기</span>
+                        <ArrowRight className="w-5 h-5" />
+                      </div>
+                    )}
+                  </Button>
+                </motion.div>
+              ) : (
+                <div>
+                  <Label htmlFor="code" className="flex items-center space-x-2 text-white">
+                    <span>인증 코드</span>
+                  </Label>
+                  <Input
+                    id="code"
+                    type="text"
+                    placeholder="6자리 인증 코드"
+                    className="h-12 text-lg bg-secondary/50 border-border text-white mt-2"
+                    value={verificationCode}
+                    onChange={(e) => setVerificationCode(e.target.value.replace(/[^\d]/g, ''))}
+                    onKeyPress={handleKeyPress}
+                    maxLength={6}
+                    disabled={isLoading}
+                  />
+                  <p className="text-sm text-muted-foreground mt-1">
+                    SMS로 전송된 6자리 인증 코드를 입력해주세요
+                  </p>
+                </div>
+              )}
+
+              {codeSent && (
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <Button
+                    onClick={handleLogin}
+                    disabled={isLoading || !verificationCode.trim()}
+                    className="w-full h-12 text-lg bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 transition-all duration-300"
+                    size="lg"
+                  >
+                    {isLoading ? (
+                      <div className="flex items-center space-x-2">
+                        <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                        <span>로그인 중...</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center space-x-2">
+                        <span>로그인</span>
+                        <ArrowRight className="w-5 h-5" />
+                      </div>
+                    )}
+                  </Button>
+                </motion.div>
+              )}
 
               {/* 회원가입 링크 */}
               <div className="pt-4 border-t border-border">
@@ -190,7 +281,7 @@ export default function LoginPage() {
                         disabled={isLoading}
                       >
                         <div className="flex items-center space-x-2">
-                          <User className="w-5 h-5" />
+                          <UserIcon className="w-5 h-5" />
                           <span>회원가입 하기</span>
                         </div>
                       </Button>

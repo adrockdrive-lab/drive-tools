@@ -1,5 +1,5 @@
 // Gamification Components Export
-export { GameDashboard } from './GameDashboard';
+export { default as GameDashboard } from './GameDashboard';
 export { LevelBadge, LevelSystem } from './LevelSystem';
 export { MissionCard } from './MissionCard';
 export { Fireworks, ParticleSystem, triggerParticleExplosion } from './ParticleSystem';

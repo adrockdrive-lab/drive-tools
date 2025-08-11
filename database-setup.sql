@@ -92,7 +92,26 @@ create index if not exists idx_paybacks_status on paybacks(status);
 comment on table paybacks is 'Tracks payback amounts and payment status for completed missions';
 
 -- ===============================================
--- 5. referrals 테이블 - 친구 추천
+-- 5. sms_verifications 테이블 - SMS 인증 코드
+-- ===============================================
+create table if not exists sms_verifications (
+  id uuid default gen_random_uuid() primary key,
+  phone varchar(15) not null,
+  code varchar(6) not null,
+  expires_at timestamp with time zone not null,
+  verified boolean default false,
+  created_at timestamp with time zone default now()
+);
+
+-- sms_verifications 테이블 인덱스
+create index if not exists idx_sms_verifications_phone on sms_verifications(phone);
+create index if not exists idx_sms_verifications_expires_at on sms_verifications(expires_at);
+
+-- sms_verifications 테이블 주석
+comment on table sms_verifications is 'Stores SMS verification codes for phone number verification';
+
+-- ===============================================
+-- 6. referrals 테이블 - 친구 추천
 -- ===============================================
 create table if not exists referrals (
   id uuid default gen_random_uuid() primary key,
@@ -182,7 +201,7 @@ begin
   select coalesce(sum(amount), 0) into total_amount
   from paybacks
   where user_id = user_uuid and status = 'paid';
-  
+
   return total_amount;
 end;
 $$ language plpgsql security definer;
@@ -198,7 +217,7 @@ begin
     from missions m
     where m.id = new.mission_id and m.reward_amount > 0;
   end if;
-  
+
   return new;
 end;
 $$ language plpgsql security definer;

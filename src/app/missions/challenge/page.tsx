@@ -12,7 +12,7 @@ import { toast } from 'sonner'
 export default function ChallengeMissionPage() {
   const [loading, setLoading] = useState(true)
   const [mission, setMission] = useState<Mission | null>(null)
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<Record<string, unknown> | null>(null)
   const [proofUrl, setProofUrl] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
@@ -50,7 +50,7 @@ export default function ChallengeMissionPage() {
 
     try {
       setSubmitting(true)
-      const result = await missionService.startMission(user.id, mission.id)
+      const result = await missionService.startMission(user.id as string, mission.id)
       if (result.success) {
         toast.success('챌린지 미션이 시작되었습니다!')
         loadMissionData() // 데이터 새로고침
@@ -75,7 +75,7 @@ export default function ChallengeMissionPage() {
 
     try {
       setSubmitting(true)
-      const result = await missionService.completeMission(user.id, mission.id, proofUrl)
+      const result = await missionService.completeMission(user.id as string, mission.id, proofUrl)
       if (result.success) {
         toast.success('챌린지 미션이 완료되었습니다!')
         loadMissionData() // 데이터 새로고침

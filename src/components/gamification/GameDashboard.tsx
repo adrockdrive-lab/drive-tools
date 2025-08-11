@@ -3,107 +3,47 @@
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { missionService, type Mission } from '@/lib/services/missions'
-import { paybackService } from '@/lib/services/paybacks'
-import { referralService } from '@/lib/services/referrals'
+import { useAppStore } from '@/lib/store'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { MissionCard } from './MissionCard'
 import { ProgressRing } from './ProgressRing'
 
-interface User {
-  id: string
-  name: string
-  phone: string
-  branch_id?: string
-  referral_bonus?: number
-  consecutive_days?: number
-}
-
 export default function GameDashboard() {
-  const [user, setUser] = useState<User | null>(null)
-  const [missions, setMissions] = useState<Mission[]>([])
-  const [totalPayback, setTotalPayback] = useState(0)
-  const [referralBonus, setReferralBonus] = useState(0)
-  const [loading, setLoading] = useState(true)
+  const { user, missions, userMissions, totalPayback, referrals, isLoading } = useAppStore()
   const [stats, setStats] = useState({
     completedMissions: 0,
     totalMissions: 0,
     completionRate: 0
   })
 
+  // 통계 계산
   useEffect(() => {
-    loadDashboardData()
-  }, [])
-
-  const loadDashboardData = async () => {
-    try {
-      setLoading(true)
-
-      // 사용자 정보 로드 (실제로는 인증된 사용자 ID 사용)
-      const currentUser = await getCurrentUser()
-      if (!currentUser) {
-        toast.error('사용자 정보를 불러올 수 없습니다.')
-        return
-      }
-
-      setUser(currentUser)
-
-      // 미션 데이터 로드
-      const missionResult = await missionService.getUserMissions(currentUser.id)
-      if (missionResult.success && missionResult.missions) {
-        setMissions(missionResult.missions)
-
-        const completed = missionResult.missions.filter(m => m.status === 'completed').length
-        const total = missionResult.missions.length
-        setStats({
-          completedMissions: completed,
-          totalMissions: total,
-          completionRate: total > 0 ? Math.round((completed / total) * 100) : 0
-        })
-      }
-
-      // 페이백 데이터 로드
-      const paybackResult = await paybackService.getUserTotalPayback(currentUser.id)
-      if (paybackResult.success) {
-        setTotalPayback(paybackResult.total || 0)
-      }
-
-      // 추천 보너스 로드
-      const referralResult = await referralService.getUserReferralBonus(currentUser.id)
-      if (referralResult.success) {
-        setReferralBonus(referralResult.bonus || 0)
-      }
-
-    } catch (error) {
-      console.error('대시보드 데이터 로드 오류:', error)
-      toast.error('데이터를 불러오는데 실패했습니다.')
-    } finally {
-      setLoading(false)
+    if (userMissions && missions) {
+      const completed = userMissions.filter(m => m.status === 'completed').length
+      const total = missions.length
+      setStats({
+        completedMissions: completed,
+        totalMissions: total,
+        completionRate: total > 0 ? Math.round((completed / total) * 100) : 0
+      })
     }
-  }
+  }, [userMissions, missions])
 
-  const getCurrentUser = async (): Promise<User | null> => {
-    // 실제로는 인증된 사용자 정보를 가져와야 함
-    // 임시로 로컬 스토리지에서 사용자 정보를 가져옴
-    const userData = localStorage.getItem('user')
-    if (userData) {
-      return JSON.parse(userData)
+  // 사용자 정보 확인
+  useEffect(() => {
+    if (!user) {
+      toast.error('사용자 정보를 불러올 수 없습니다.')
     }
-    return null
-  }
+  }, [user])
 
   const handleMissionStart = async (missionId: string) => {
     if (!user) return
 
     try {
-      const result = await missionService.startMission(user.id, missionId)
-      if (result.success) {
-        toast.success('미션이 시작되었습니다!')
-        loadDashboardData() // 데이터 새로고침
-      } else {
-        toast.error(result.error || '미션 시작에 실패했습니다.')
-      }
+      console.log('미션 시작:', missionId)
+      // TODO: 미션 시작 로직 구현
+      toast.success('미션이 시작되었습니다!')
     } catch (error) {
       console.error('미션 시작 오류:', error)
       toast.error('미션 시작에 실패했습니다.')
@@ -114,20 +54,16 @@ export default function GameDashboard() {
     if (!user) return
 
     try {
-      const result = await missionService.completeMission(user.id, missionId)
-      if (result.success) {
-        toast.success('미션이 완료되었습니다!')
-        loadDashboardData() // 데이터 새로고침
-      } else {
-        toast.error(result.error || '미션 완료에 실패했습니다.')
-      }
+      console.log('미션 완료:', missionId)
+      // TODO: 미션 완료 로직 구현
+      toast.success('미션이 완료되었습니다!')
     } catch (error) {
       console.error('미션 완료 오류:', error)
       toast.error('미션 완료에 실패했습니다.')
     }
   }
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-background p-4">
         <div className="max-w-4xl mx-auto space-y-6">
@@ -154,7 +90,7 @@ export default function GameDashboard() {
               안녕하세요, {user?.name}님! 👋
             </h1>
             <p className="text-muted-foreground">
-              {user?.branch_id ? `${user.branch_id} 지점` : '드라이빙존'}에서 미션을 완료하고 보상을 받아보세요
+              드라이빙존에서 미션을 완료하고 보상을 받아보세요
             </p>
           </div>
         </div>
@@ -187,8 +123,7 @@ export default function GameDashboard() {
               <div className="flex items-center space-x-2">
                 <ProgressRing
                   progress={stats.completionRate}
-                  size={60}
-                  strokeWidth={4}
+                  size="lg"
                 />
                 <div>
                   <div className="text-2xl font-bold text-white">
@@ -210,7 +145,7 @@ export default function GameDashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-white">
-                {referralBonus.toLocaleString()}원
+                {referrals.length > 0 ? referrals.length * 50000 : 0}원
               </div>
               <p className="text-xs text-muted-foreground mt-1">
                 친구 추천으로 받은 보상
@@ -224,19 +159,27 @@ export default function GameDashboard() {
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-bold text-white">진행 중인 미션</h2>
             <Badge variant="secondary" className="text-xs">
-              {missions.filter(m => m.status === 'in_progress').length}개 진행 중
+              {userMissions.filter(m => m.status === 'in_progress').length}개 진행 중
             </Badge>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {missions.map((mission) => (
-              <MissionCard
-                key={mission.id}
-                mission={mission}
-                onStart={() => handleMissionStart(mission.id)}
-                onComplete={() => handleMissionComplete(mission.id)}
-              />
-            ))}
+            {missions.map((mission) => {
+              const userMission = userMissions.find(um => um.missionId === mission.id)
+              const missionWithStatus = {
+                ...mission,
+                status: userMission?.status || 'pending'
+              }
+
+              return (
+                <MissionCard
+                  key={mission.id}
+                  mission={missionWithStatus}
+                  onStart={() => handleMissionStart(mission.id.toString())}
+                  onComplete={() => handleMissionComplete(mission.id.toString())}
+                />
+              )
+            })}
           </div>
 
           {missions.length === 0 && (

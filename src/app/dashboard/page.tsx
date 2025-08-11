@@ -1,6 +1,6 @@
 'use client'
 
-import { GameDashboard } from '@/components/gamification/GameDashboard'
+import GameDashboard from '@/components/gamification/GameDashboard'
 import { useAppStore } from '@/lib/store'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
@@ -22,7 +22,14 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!isMounted) return
 
+    console.log('Dashboard useEffect triggered:', {
+      isMounted,
+      isAuthenticated,
+      user: useAppStore.getState().user
+    })
+
     if (!isAuthenticated) {
+      console.log('Not authenticated, redirecting to register')
       router.push('/register')
       return
     }

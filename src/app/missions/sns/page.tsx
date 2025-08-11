@@ -64,22 +64,39 @@ export default function SNSMissionPage() {
       }
 
       // 미션 서비스 사용
-      const { startMission, submitMissionProof } = await import('@/lib/services/missions')
+      const { startMission, completeMission } = await import('@/lib/services/missions')
 
       if (currentMission) {
-        // 기존 미션 증명 데이터 제출
-        const { userMission, error } = await submitMissionProof(user.id, 2, proofData)
-        if (error || !userMission) throw new Error(error || '미션 제출에 실패했습니다.')
-        updateUserMission(userMission)
+        // 기존 미션 완료
+        const { error } = await completeMission(user.id, '2', JSON.stringify(proofData))
+        if (error) throw new Error(error)
+
+        // 로컬 상태 업데이트
+        const updatedMission = {
+          ...currentMission,
+          status: 'completed' as const,
+          proofData
+        }
+        updateUserMission(updatedMission)
       } else {
-        // 새 미션 시작 후 증명 데이터 제출
-        const { userMission: newMission, error: startError } = await startMission(user.id, 2)
-        if (startError || !newMission) throw new Error(startError || '미션 시작에 실패했습니다.')
+        // 새 미션 시작 후 완료
+        const { error: startError } = await startMission(user.id, '2')
+        if (startError) throw new Error(startError)
 
-        const { userMission: completedMission, error: submitError } = await submitMissionProof(user.id, 2, proofData)
-        if (submitError || !completedMission) throw new Error(submitError || '미션 제출에 실패했습니다.')
+        const { error: completeError } = await completeMission(user.id, '2', JSON.stringify(proofData))
+        if (completeError) throw new Error(completeError)
 
-        updateUserMission(completedMission)
+        // 로컬 상태 업데이트
+        const newMission = {
+          id: `temp-${Date.now()}`,
+          userId: user.id,
+          missionId: 2,
+          status: 'completed' as const,
+          proofData,
+          completedAt: new Date().toISOString(),
+          createdAt: new Date().toISOString()
+        }
+        updateUserMission(newMission)
       }
 
       toast.success('미션이 제출되었습니다! 검토 후 페이백이 지급됩니다.')

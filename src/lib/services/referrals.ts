@@ -109,7 +109,7 @@ export const referralService = {
   },
 
   // 지점별 추천 통계 조회
-  async getBranchReferralStats(branchId: string): Promise<{ success: boolean; stats?: any; error?: string }> {
+  async getBranchReferralStats(branchId: string): Promise<{ success: boolean; stats?: Record<string, unknown>; error?: string }> {
     try {
       const { data, error } = await supabase
         .from('user_referrals')
@@ -143,7 +143,7 @@ export const referralService = {
   },
 
   // 추천 코드로 사용자 조회
-  async getUserByReferralCode(referralCode: string): Promise<{ success: boolean; user?: any; error?: string }> {
+  async getUserByReferralCode(referralCode: string): Promise<{ success: boolean; user?: Record<string, unknown>; error?: string }> {
     try {
       const { data, error } = await supabase
         .from('users')
@@ -163,3 +163,4 @@ export const referralService = {
     }
   }
 }
+

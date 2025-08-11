@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase'
 
 export interface RegisterData {
   name: string
@@ -14,19 +14,44 @@ export interface LoginData {
 }
 
 export const authService = {
-  // SMS 인증 코드 전송
+  // 휴대폰 번호 형식 통일 (하이픈 제거)
+  normalizePhone(phone: string): string {
+    return phone.replace(/[^\d]/g, '')
+  },
+
+  // SMS 인증 코드 전송 (개발용 - 실제 SMS 대신 DB에 저장)
   async sendVerificationCode(phone: string): Promise<{ success: boolean; error?: string }> {
     try {
-      const supabase = createClient()
+      const normalizedPhone = this.normalizePhone(phone)
+      console.log('SMS 인증 코드 전송:', { original: phone, normalized: normalizedPhone })
 
-      const { error } = await supabase.functions.invoke('send-sms-verification', {
-        body: { phone }
-      })
+      // 개발용: 6자리 랜덤 코드 생성
+      const code = Math.floor(100000 + Math.random() * 900000).toString()
+      const expiresAt = new Date(Date.now() + 10 * 60 * 1000) // 10분 후 만료
+
+      // 기존 인증 코드 삭제
+      await supabase
+        .from('sms_verifications')
+        .delete()
+        .eq('phone', normalizedPhone)
+
+      // 새 인증 코드 저장
+      const { error } = await supabase
+        .from('sms_verifications')
+        .insert({
+          phone: normalizedPhone,
+          code,
+          expires_at: expiresAt.toISOString(),
+          verified: false
+        })
 
       if (error) {
-        console.error('SMS 전송 오류:', error)
-        return { success: false, error: 'SMS 전송에 실패했습니다.' }
+        console.error('인증 코드 저장 오류:', error)
+        return { success: false, error: '인증 코드 생성에 실패했습니다.' }
       }
+
+      // 개발용: 콘솔에 코드 출력
+      console.log(`[개발용] ${normalizedPhone}로 전송된 인증 코드: ${code}`)
 
       return { success: true }
     } catch (error) {
@@ -38,18 +63,22 @@ export const authService = {
   // SMS 인증 코드 확인
   async verifyCode(phone: string, code: string): Promise<{ success: boolean; error?: string }> {
     try {
-      const supabase = createClient()
+      const normalizedPhone = this.normalizePhone(phone)
+      console.log('인증 코드 확인 시도:', { original: phone, normalized: normalizedPhone, code })
 
       const { data, error } = await supabase
         .from('sms_verifications')
         .select('*')
-        .eq('phone', phone)
+        .eq('phone', normalizedPhone)
         .eq('code', code)
         .eq('verified', false)
         .gte('expires_at', new Date().toISOString())
         .single()
 
+      console.log('인증 코드 조회 결과:', { data, error })
+
       if (error || !data) {
+        console.log('인증 코드 검증 실패:', { error, data })
         return { success: false, error: '인증 코드가 올바르지 않거나 만료되었습니다.' }
       }
 
@@ -59,6 +88,7 @@ export const authService = {
         .update({ verified: true })
         .eq('id', data.id)
 
+      console.log('인증 코드 확인 성공')
       return { success: true }
     } catch (error) {
       console.error('인증 코드 확인 오류:', error)
@@ -67,10 +97,8 @@ export const authService = {
   },
 
   // 회원가입 (지점 정보 포함)
-  async register(data: RegisterData): Promise<{ success: boolean; user?: any; error?: string }> {
+  async register(data: RegisterData): Promise<{ success: boolean; user?: Record<string, unknown>; error?: string }> {
     try {
-      const supabase = createClient()
-
       // 1. 지점 정보 조회
       let branchId = null
       if (data.branchCode) {
@@ -104,11 +132,12 @@ export const authService = {
       const referralCode = await this.generateUniqueReferralCode()
 
       // 4. 사용자 생성
+      const normalizedPhone = this.normalizePhone(data.phone)
       const { data: user, error } = await supabase
         .from('users')
         .insert({
           name: data.name,
-          phone: data.phone,
+          phone: normalizedPhone,
           phone_verified: true,
           branch_id: branchId,
           referral_code: referralCode,
@@ -135,27 +164,35 @@ export const authService = {
   },
 
   // 로그인
-  async login(data: LoginData): Promise<{ success: boolean; user?: any; error?: string }> {
+  async login(data: LoginData): Promise<{ success: boolean; user?: Record<string, unknown>; error?: string }> {
     try {
-      const supabase = createClient()
+      const normalizedPhone = this.normalizePhone(data.phone)
+      console.log('로그인 시도:', { original: data.phone, normalized: normalizedPhone, code: data.verificationCode })
 
       // SMS 인증 확인
       const verifyResult = await this.verifyCode(data.phone, data.verificationCode)
       if (!verifyResult.success) {
+        console.log('SMS 인증 실패:', verifyResult.error)
         return { success: false, error: verifyResult.error }
       }
+
+      console.log('SMS 인증 성공, 사용자 조회 중...')
 
       // 사용자 조회
       const { data: user, error } = await supabase
         .from('users')
         .select('*')
-        .eq('phone', data.phone)
+        .eq('phone', normalizedPhone)
         .single()
 
+      console.log('사용자 조회 결과:', { user, error })
+
       if (error || !user) {
+        console.log('사용자를 찾을 수 없음:', { phone: normalizedPhone, error })
         return { success: false, error: '등록되지 않은 휴대폰 번호입니다.' }
       }
 
+      console.log('로그인 성공:', user)
       return { success: true, user }
     } catch (error) {
       console.error('로그인 오류:', error)
@@ -165,12 +202,10 @@ export const authService = {
 
   // 고유 추천 코드 생성
   async generateUniqueReferralCode(): Promise<string> {
-    const supabase = createClient()
-
     while (true) {
       const code = Math.random().toString(36).substring(2, 8).toUpperCase()
 
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('users')
         .select('id')
         .eq('referral_code', code)
@@ -186,15 +221,21 @@ export const authService = {
   // 추천 보너스 처리
   async processReferralBonus(referrerId: string, referredId: string): Promise<void> {
     try {
-      const supabase = createClient()
-
-      // 추천인 보너스 증가
-      await supabase
+      // 추천인 보너스 증가 (실제로는 RPC 함수나 별도 쿼리 사용)
+      const { data: currentUser } = await supabase
         .from('users')
-        .update({
-          referral_bonus: supabase.sql`referral_bonus + 50000`
-        })
+        .select('referral_bonus')
         .eq('id', referrerId)
+        .single()
+
+      if (currentUser) {
+        await supabase
+          .from('users')
+          .update({
+            referral_bonus: (currentUser.referral_bonus || 0) + 50000
+          })
+          .eq('id', referrerId)
+      }
 
       // 추천 관계 기록
       await supabase

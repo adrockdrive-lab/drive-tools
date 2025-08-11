@@ -52,15 +52,22 @@ export const useAppStore = create<AppStore>()(
         set({ isLoading: true, error: null })
 
         try {
+          // 휴대폰 번호 정규화
+          const normalizedPhone = phone.replace(/[^\d]/g, '')
+          console.log('Store login:', { original: phone, normalized: normalizedPhone })
+
           const { data, error } = await supabase
             .from('users')
             .select('*')
-            .eq('phone', phone)
+            .eq('phone', normalizedPhone)
             .single()
 
           if (error) {
+            console.error('User lookup error:', error)
             throw new Error('User not found')
           }
+
+          console.log('User found:', data)
 
           // Convert database format to app format
           const user: User = {
@@ -78,12 +85,19 @@ export const useAppStore = create<AppStore>()(
             isLoading: false
           })
 
+          console.log('User state set:', user)
+          console.log('Local storage check:', {
+            stored: localStorage.getItem('driving-zone-storage'),
+            parsed: JSON.parse(localStorage.getItem('driving-zone-storage') || '{}')
+          })
+
           // Load user's mission data
           await get().loadUserMissions()
           await get().loadPaybacks()
           await get().loadReferrals()
 
         } catch (error) {
+          console.error('Login error:', error)
           set({
             error: error instanceof Error ? error.message : 'Login failed',
             isLoading: false
@@ -328,6 +342,13 @@ export const useAppStore = create<AppStore>()(
         set({ isLoading: true, error: null })
 
         try {
+          console.log('=== App Initialization Start ===')
+          console.log('Current store state:', {
+            user: get().user,
+            isAuthenticated: get().isAuthenticated,
+            isLoading: get().isLoading
+          })
+
           console.log('Loading missions...')
           // Load missions (public data)
           await get().loadMissions()
@@ -335,14 +356,18 @@ export const useAppStore = create<AppStore>()(
 
           // If user is logged in, load their data
           const { user } = get()
+          console.log('Checking user state:', user)
+
           if (user) {
-            console.log('Loading user data...')
+            console.log('Loading user data for user:', user.id)
             await Promise.all([
               get().loadUserMissions(),
               get().loadPaybacks(),
               get().loadReferrals()
             ])
             console.log('User data loaded successfully')
+          } else {
+            console.log('No user found in store state')
           }
 
           console.log('App initialization completed')

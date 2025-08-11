@@ -121,13 +121,19 @@ export default function AttendanceMissionPage() {
         updateUserMission(updatedMission)
       } else {
         // 새 미션 시작
-        const { userMission: newMission, error: startError } = await startMission(user.id, 5)
-        if (!startError && newMission) {
-          updateUserMission({
-            ...newMission,
-            status: 'in_progress',
-            proofData
-          })
+        const { error: startError } = await startMission(user.id, '5')
+        if (!startError) {
+          // 미션 시작 성공 시 로컬 상태 업데이트
+          const newMission = {
+            id: `temp-${Date.now()}`,
+            userId: user.id,
+            missionId: 5,
+            status: 'in_progress' as const,
+            proofData,
+            completedAt: null,
+            createdAt: new Date().toISOString()
+          }
+          updateUserMission(newMission)
         }
       }
 

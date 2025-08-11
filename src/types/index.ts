@@ -24,6 +24,7 @@ export interface Mission {
   missionType: MissionType
   isActive: boolean
   createdAt: string
+  status?: MissionStatus
 }
 
 export interface UserMission {
@@ -70,7 +71,7 @@ export type PaybackStatus = 'pending' | 'paid' | 'cancelled'
 // 미션별 증명 데이터 타입들
 // ===============================================
 
-export type ProofData = 
+export type ProofData =
   | ChallengeProofData
   | SNSProofData
   | ReviewProofData
@@ -188,18 +189,18 @@ export interface AppState {
   // 사용자 상태
   user: User | null
   isAuthenticated: boolean
-  
+
   // 미션 상태
   missions: Mission[]
   userMissions: UserMission[]
-  
+
   // 페이백 상태
   paybacks: Payback[]
   totalPayback: number
-  
+
   // 추천 상태
   referrals: Referral[]
-  
+
   // UI 상태
   isLoading: boolean
   error: string | null
@@ -210,20 +211,20 @@ export interface AppActions {
   setUser: (user: User | null) => void
   login: (phone: string) => Promise<void>
   logout: () => void
-  
+
   // 미션 액션
   setMissions: (missions: Mission[]) => void
   setUserMissions: (userMissions: UserMission[]) => void
   updateUserMission: (userMission: UserMission) => void
-  
+
   // 페이백 액션
   setPaybacks: (paybacks: Payback[]) => void
   calculateTotalPayback: () => void
-  
+
   // 추천 액션
   setReferrals: (referrals: Referral[]) => void
   addReferral: (referral: Omit<Referral, 'id' | 'createdAt'>) => void
-  
+
   // UI 액션
   setLoading: (isLoading: boolean) => void
   setError: (error: string | null) => void

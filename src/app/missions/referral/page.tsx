@@ -6,19 +6,18 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { missionService, type Mission } from '@/lib/services/missions'
-import { referralService } from '@/lib/services/referrals'
+import { referralService, type Referral } from '@/lib/services/referrals'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
 export default function ReferralMissionPage() {
   const [loading, setLoading] = useState(true)
   const [mission, setMission] = useState<Mission | null>(null)
-  const [user, setUser] = useState<any>(null)
-  const [referralCode, setReferralCode] = useState('')
+  const [user, setUser] = useState<Record<string, unknown> | null>(null)
   const [friendName, setFriendName] = useState('')
   const [friendPhone, setFriendPhone] = useState('')
   const [submitting, setSubmitting] = useState(false)
-  const [referrals, setReferrals] = useState<any[]>([])
+  const [referrals, setReferrals] = useState<Referral[]>([])
 
   useEffect(() => {
     loadMissionData()
@@ -60,7 +59,7 @@ export default function ReferralMissionPage() {
 
     try {
       setSubmitting(true)
-      const result = await missionService.startMission(user.id, mission.id)
+      const result = await missionService.startMission(user.id as string, mission.id)
       if (result.success) {
         toast.success('추천 미션이 시작되었습니다!')
         loadMissionData()
@@ -85,7 +84,7 @@ export default function ReferralMissionPage() {
 
     try {
       setSubmitting(true)
-      const result = await referralService.addReferral(user.id, friendName, friendPhone)
+      const result = await referralService.addReferral(user.id as string, friendName, friendPhone)
       if (result.success) {
         toast.success('친구가 추천 목록에 추가되었습니다!')
         setFriendName('')
@@ -104,7 +103,7 @@ export default function ReferralMissionPage() {
 
   const copyReferralCode = () => {
     if (user?.referral_code) {
-      navigator.clipboard.writeText(user.referral_code)
+      navigator.clipboard.writeText(user.referral_code as string)
       toast.success('추천 코드가 복사되었습니다!')
     }
   }
@@ -211,7 +210,7 @@ export default function ReferralMissionPage() {
                     <h4 className="text-white font-semibold mb-3">내 추천 코드</h4>
                     <div className="flex items-center space-x-2">
                       <Input
-                        value={user?.referral_code || '코드 없음'}
+                        value={(user?.referral_code as string) || '코드 없음'}
                         readOnly
                         className="bg-background border-border text-white"
                       />

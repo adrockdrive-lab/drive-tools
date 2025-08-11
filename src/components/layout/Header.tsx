@@ -216,33 +216,7 @@ export function Header({ onToggleMobileNav }: HeaderProps) {
   );
 }
 
-// 네비게이션 링크 컴포넌트
-function NavLink({
-  href,
-  children,
-  active = false
-}: {
-  href: string;
-  children: React.ReactNode;
-  active?: boolean
-}) {
-  return (
-    <motion.a
-      href={href}
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
-      className={`
-        px-3 py-2 rounded-md text-sm font-medium transition-colors
-        ${active
-          ? 'bg-primary/20 text-primary'
-          : 'text-muted-foreground hover:text-white hover:bg-secondary'
-        }
-      `}
-    >
-      {children}
-    </motion.a>
-  );
-}
+
 
 // 모바일 네비게이션 링크 컴포넌트
 function MobileNavLink({

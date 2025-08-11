@@ -52,7 +52,7 @@ export const paybackService = {
   },
 
   // 지점별 페이백 통계 조회
-  async getBranchPaybackStats(branchId: string): Promise<{ success: boolean; stats?: any; error?: string }> {
+  async getBranchPaybackStats(branchId: string): Promise<{ success: boolean; stats?: Record<string, unknown>; error?: string }> {
     try {
       const { data, error } = await supabase
         .from('paybacks')
@@ -86,7 +86,7 @@ export const paybackService = {
   // 페이백 상태 업데이트
   async updatePaybackStatus(paybackId: string, status: 'pending' | 'paid' | 'cancelled'): Promise<{ success: boolean; error?: string }> {
     try {
-      const updateData: any = { status }
+      const updateData: Record<string, unknown> = { status }
 
       if (status === 'paid') {
         updateData.paid_at = new Date().toISOString()

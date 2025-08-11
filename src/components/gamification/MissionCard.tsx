@@ -3,7 +3,7 @@
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { type Mission } from '@/lib/services/missions'
+import { type Mission } from '@/types'
 import { useState } from 'react'
 import { ProgressRing } from './ProgressRing'
 
@@ -116,21 +116,21 @@ export function MissionCard({ mission, onStart, onComplete }: MissionCardProps) 
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex items-center space-x-2">
-            <span className="text-2xl">{getMissionIcon(mission.mission_type)}</span>
+            <span className="text-2xl">{getMissionIcon(mission.missionType)}</span>
             <div>
               <CardTitle className="text-white text-base">
                 {mission.title}
               </CardTitle>
               <p className="text-muted-foreground text-xs">
-                {mission.mission_type} 미션
+                {mission.missionType} 미션
               </p>
             </div>
           </div>
           <Badge
             variant="outline"
-            className={`text-xs ${getStatusColor(mission.status)}`}
+            className={`text-xs ${getStatusColor(mission.status || 'pending')}`}
           >
-            {getStatusText(mission.status)}
+            {getStatusText(mission.status || 'pending')}
           </Badge>
         </div>
       </CardHeader>
@@ -145,7 +145,7 @@ export function MissionCard({ mission, onStart, onComplete }: MissionCardProps) 
             <span className="text-2xl">💰</span>
             <div>
               <div className="text-white font-bold">
-                {mission.reward_amount.toLocaleString()}원
+                {mission.rewardAmount.toLocaleString()}원
               </div>
               <div className="text-muted-foreground text-xs">
                 보상 금액
@@ -155,7 +155,7 @@ export function MissionCard({ mission, onStart, onComplete }: MissionCardProps) 
 
           {mission.status === 'in_progress' && (
             <div className="flex items-center space-x-2">
-              <ProgressRing progress={50} size={40} strokeWidth={3} />
+              <ProgressRing progress={50} size="md" />
               <span className="text-muted-foreground text-xs">진행률</span>
             </div>
           )}
