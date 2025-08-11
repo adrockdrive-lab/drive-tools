@@ -3,8 +3,8 @@
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { useAppStore } from '@/lib/store'
 import { missionService } from '@/lib/services/missions'
+import { useAppStore } from '@/lib/store'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
@@ -33,7 +33,7 @@ export default function AttendanceMissionPage() {
     try {
       setSubmitting(true)
       const result = await missionService.startMissionParticipation(user.id, attendanceMission.id)
-      
+
       if (result.success) {
         toast.success('출석 미션이 시작되었습니다!')
         await loadUserMissions()
@@ -53,7 +53,7 @@ export default function AttendanceMissionPage() {
 
     try {
       setSubmitting(true)
-      
+
       const proofData = {
         type: 'attendance',
         attendanceDate: new Date().toISOString(),
@@ -61,11 +61,11 @@ export default function AttendanceMissionPage() {
       }
 
       const result = await missionService.completeMissionParticipation(
-        user.id, 
-        attendanceMission.id, 
+        user.id,
+        attendanceMission.id,
         proofData
       )
-      
+
       if (result.success) {
         toast.success('출석 미션이 완료되었습니다!')
         await loadUserMissions()
@@ -158,7 +158,7 @@ export default function AttendanceMissionPage() {
 
               <div className="bg-secondary/50 rounded-lg p-4">
                 <div className="flex items-center justify-between">
-                  <div>
+                  <div className='flex flex-col gap-2'>
                     <div className="text-white font-bold text-lg">
                       {attendanceMission.rewardAmount.toLocaleString()}원
                     </div>

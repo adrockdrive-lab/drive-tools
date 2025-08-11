@@ -32,6 +32,33 @@ export interface Store {
   updatedAt: string
 }
 
+export interface Admin {
+  id: string
+  name: string
+  email: string
+  storeId: number
+  role: 'admin' | 'super_admin'
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+export interface UserMissionData {
+  id: string
+  userName: string
+  userPhone: string
+  missionTitle: string
+  missionType: MissionType
+  status: MissionStatus
+  startedAt: string | null
+  completedAt: string | null
+  rewardAmount: number
+  proofData: ProofData | null
+  paybackStatus: PaybackStatus | null
+  paybackAmount: number | null
+  createdAt: string
+}
+
 export interface User {
   id: string
   name: string
@@ -100,7 +127,7 @@ export type MissionType = 'challenge' | 'sns' | 'review' | 'referral' | 'attenda
 
 export type MissionStatus = 'pending' | 'in_progress' | 'completed' | 'verified'
 
-export type PaybackStatus = 'pending' | 'paid' | 'cancelled'
+export type PaybackStatus = 'pending' | 'paid' | 'cancelled' | 'rejected'
 
 // ===============================================
 // 미션별 증명 데이터 타입들
