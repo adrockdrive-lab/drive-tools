@@ -1,6 +1,7 @@
 'use client'
 
 import GameDashboard from '@/components/gamification/GameDashboard'
+import { Header } from '@/components/layout/Header'
 import { useAppStore } from '@/lib/store'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
@@ -75,6 +76,13 @@ export default function DashboardPage() {
     )
   }
 
-  // Use the new GameDashboard component
-  return <GameDashboard />
+  // Use the new GameDashboard component with Header
+  return (
+    <div className="min-h-screen bg-background">
+      <Header />
+      <div className="pt-4">
+        <GameDashboard />
+      </div>
+    </div>
+  )
 }

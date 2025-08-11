@@ -81,9 +81,9 @@ export default function GameDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-4">
+    <div className="p-4">
       <div className="max-w-4xl mx-auto space-y-6">
-        {/* 헤더 */}
+        {/* 환영 메시지 */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-white">
