@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Select } from '@/components/ui/select'
 import { authService } from '@/lib/services/auth'
 import { useStores } from '@/lib/store'
 import { useRouter } from 'next/navigation'
@@ -183,19 +184,16 @@ function RegisterForm() {
 
               <div className='flex flex-col gap-4'>
                 <Label htmlFor="storeId" className="text-white">지점 선택</Label>
-                <select
-                  id="storeId"
+                <Select
+                  options={stores.map((store) => ({
+                    value: store.id.toString(),
+                    label: store.name,
+                    description: store.summaryAddress
+                  }))}
                   value={formData.storeId}
-                  onChange={(e) => handleInputChange('storeId', e.target.value)}
-                  className="w-full bg-secondary/50 border border-border text-white rounded-md px-3 py-2"
-                >
-                  <option value="">지점을 선택해주세요</option>
-                  {stores.map((store) => (
-                    <option key={store.id} value={store.id}>
-                      {store.name} - {store.summaryAddress}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(value) => handleInputChange('storeId', value)}
+                  placeholder="지점을 선택해주세요"
+                />
                 <p className="text-xs text-muted-foreground mt-1">
                   이용하실 지점을 선택해주세요.
                 </p>
