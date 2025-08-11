@@ -2,7 +2,6 @@ import type {
     AppActions,
     AppState,
     Mission,
-    MissionStatus,
     Payback,
     PaybackStatus,
     Referral,
@@ -171,25 +170,26 @@ export const useAppStore = create<AppStore>()(
         if (!user) return
 
         try {
-          const { data, error } = await supabase
-            .from('user_missions')
-            .select('*')
-            .eq('user_id', user.id)
+          const { missionService } = await import('@/lib/services/missions')
+          const result = await missionService.getUserMissionParticipations(user.id)
 
-          if (error) throw error
+          if (result.success && result.participations) {
+            const userMissions: UserMission[] = result.participations.map(p => ({
+              id: p.id,
+              userId: p.userId,
+              missionId: p.missionId,
+              status: p.status,
+              proofData: p.proofData as any, // 타입 캐스팅으로 임시 해결
+              completedAt: p.completedAt,
+              createdAt: p.createdAt
+            }))
 
-          const userMissions: UserMission[] = data.map(um => ({
-            id: um.id,
-            userId: um.user_id,
-            missionId: um.mission_id,
-            status: um.status as MissionStatus,
-            proofData: um.proof_data,
-            completedAt: um.completed_at,
-            createdAt: um.created_at
-          }))
-
-          set({ userMissions })
+            set({ userMissions })
+          } else {
+            set({ userMissions: [] })
+          }
         } catch (error) {
+          console.error('User missions load error:', error)
           set({ error: error instanceof Error ? error.message : 'Failed to load user missions' })
         }
       },

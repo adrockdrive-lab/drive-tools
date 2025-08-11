@@ -37,31 +37,7 @@ export default function GameDashboard() {
     }
   }, [user])
 
-  const handleMissionStart = async (missionId: string) => {
-    if (!user) return
 
-    try {
-      console.log('미션 시작:', missionId)
-      // TODO: 미션 시작 로직 구현
-      toast.success('미션이 시작되었습니다!')
-    } catch (error) {
-      console.error('미션 시작 오류:', error)
-      toast.error('미션 시작에 실패했습니다.')
-    }
-  }
-
-  const handleMissionComplete = async (missionId: string) => {
-    if (!user) return
-
-    try {
-      console.log('미션 완료:', missionId)
-      // TODO: 미션 완료 로직 구현
-      toast.success('미션이 완료되었습니다!')
-    } catch (error) {
-      console.error('미션 완료 오류:', error)
-      toast.error('미션 완료에 실패했습니다.')
-    }
-  }
 
   if (isLoading) {
     return (
@@ -175,8 +151,6 @@ export default function GameDashboard() {
                 <MissionCard
                   key={mission.id}
                   mission={missionWithStatus}
-                  onStart={() => handleMissionStart(mission.id.toString())}
-                  onComplete={() => handleMissionComplete(mission.id.toString())}
                 />
               )
             })}

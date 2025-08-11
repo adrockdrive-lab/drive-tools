@@ -61,7 +61,7 @@ export interface Referral {
 // 열거형 타입들
 // ===============================================
 
-export type MissionType = 'challenge' | 'sns' | 'review' | 'referral'
+export type MissionType = 'challenge' | 'sns' | 'review' | 'referral' | 'attendance'
 
 export type MissionStatus = 'pending' | 'in_progress' | 'completed' | 'verified'
 

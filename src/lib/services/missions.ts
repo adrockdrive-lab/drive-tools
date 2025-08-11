@@ -1,211 +1,240 @@
 import { supabase } from '@/lib/supabase'
+import type { Mission, MissionStatus } from '@/types'
 
-export interface Mission {
+export interface MissionParticipation {
   id: string
-  title: string
-  description: string
-  reward_amount: number
-  mission_type: string
-  status: 'active' | 'completed' | 'pending' | 'in_progress'
-  branch_id?: string
-  branch_name?: string
-  created_at: string
-  completed_at?: string
+  userId: string
+  missionId: number
+  status: MissionStatus
+  startedAt: string | null
+  completedAt: string | null
+  proofData: Record<string, unknown> | null
+  rewardAmount: number
+  createdAt: string
+  updatedAt: string
 }
-
-export interface MissionInstance {
-  id: string
-  branch_id: string
-  mission_template_id: number
-  title: string
-  description: string
-  reward_amount: number
-  start_date: string
-  end_date: string
-  is_active: boolean
-}
-
-export interface UserMission {
-  id: string
-  user_id: string
-  mission_instance_id: string
-  status: 'pending' | 'in_progress' | 'completed'
-  created_at: string
-  completed_at?: string
-  proof_url?: string
-  branch_id?: string
-}
-
-
 
 export const missionService = {
-  // 사용자의 지점별 미션 목록 조회
-  async getUserMissions(userId: string): Promise<{ success: boolean; missions?: Mission[]; error?: string }> {
+  // 사용자의 미션 참가 상태 조회
+  async getUserMissionParticipations(userId: string): Promise<{ success: boolean; participations?: MissionParticipation[]; error?: string }> {
     try {
-      // 사용자 정보 조회
-      const { data: user, error: userError } = await supabase
-        .from('users')
-        .select('branch_id')
-        .eq('id', userId)
-        .single()
-
-      if (userError) {
-        console.error('사용자 조회 오류:', userError)
-        return { success: false, error: '사용자 정보를 불러오는데 실패했습니다.' }
-      }
-
-      // 사용자의 지점별 미션 인스턴스 조회
-      const { data: missions, error: missionError } = await supabase
-        .from('mission_instances')
-        .select(`
-          id,
-          title,
-          description,
-          reward_amount,
-          start_date,
-          end_date,
-          is_active,
-          mission_templates!inner(
-            mission_type_id,
-            mission_types!inner(name)
-          ),
-          branches!inner(name)
-        `)
-        .eq('branch_id', user.branch_id)
-        .eq('is_active', true)
-
-      if (missionError) {
-        console.error('미션 조회 오류:', missionError)
-        return { success: false, error: '미션을 불러오는데 실패했습니다.' }
-      }
-
-      // 사용자의 미션 진행 상태 조회
-      const { data: userMissions, error: userMissionError } = await supabase
-        .from('user_missions')
+      const { data, error } = await supabase
+        .from('mission_participations')
         .select('*')
         .eq('user_id', userId)
+        .order('created_at', { ascending: false })
 
-      if (userMissionError) {
-        console.error('사용자 미션 조회 오류:', userMissionError)
-      }
+      if (error) throw error
 
-      // 미션 데이터 변환
-      const formattedMissions = (missions || []).map((mission: Record<string, unknown>) => {
-        const userMission = userMissions?.find((um: Record<string, unknown>) => um.mission_instance_id === mission.id)
-        return {
-          id: mission.id,
-          title: mission.title,
-          description: mission.description,
-          reward_amount: mission.reward_amount,
-          mission_type: 'challenge', // 임시로 고정값 사용
-          status: userMission?.status || 'pending',
-          branch_id: user.branch_id,
-          branch_name: '드라이빙존', // 임시로 고정값 사용
-          created_at: mission.start_date,
-          completed_at: userMission?.completed_at
-        }
-      })
+      const participations: MissionParticipation[] = (data || []).map(p => ({
+        id: p.id,
+        userId: p.user_id,
+        missionId: p.mission_id,
+        status: p.status as MissionStatus,
+        startedAt: p.started_at,
+        completedAt: p.completed_at,
+        proofData: p.proof_data,
+        rewardAmount: p.reward_amount,
+        createdAt: p.created_at,
+        updatedAt: p.updated_at
+      }))
 
-      return { success: true, missions: formattedMissions as Mission[] }
+      return { success: true, participations }
     } catch (error) {
-      console.error('미션 조회 오류:', error)
-      return { success: false, error: '미션을 불러오는데 실패했습니다.' }
+      console.error('미션 참가 조회 오류:', error)
+      return { success: false, error: '미션 참가 정보를 불러오는데 실패했습니다.' }
     }
   },
 
-  // 특정 미션 시작
-  async startMission(userId: string, missionInstanceId: string): Promise<{ success: boolean; error?: string }> {
+  // 특정 미션 참가 상태 조회
+  async getMissionParticipation(userId: string, missionId: number): Promise<{ success: boolean; participation?: MissionParticipation; error?: string }> {
     try {
-      const { error } = await supabase
-        .from('user_missions')
-        .insert({
-          user_id: userId,
-          mission_instance_id: missionInstanceId,
-          status: 'in_progress'
-        })
+      const { data, error } = await supabase
+        .from('mission_participations')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('mission_id', missionId)
+        .single()
 
-      if (error) {
-        console.error('미션 시작 오류:', error)
-        return { success: false, error: '미션을 시작하는데 실패했습니다.' }
+      if (error && error.code !== 'PGRST116') throw error
+
+      if (!data) {
+        return { success: true, participation: undefined }
       }
 
-      return { success: true }
+      const participation: MissionParticipation = {
+        id: data.id,
+        userId: data.user_id,
+        missionId: data.mission_id,
+        status: data.status as MissionStatus,
+        startedAt: data.started_at,
+        completedAt: data.completed_at,
+        proofData: data.proof_data,
+        rewardAmount: data.reward_amount,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at
+      }
+
+      return { success: true, participation }
     } catch (error) {
-      console.error('미션 시작 오류:', error)
-      return { success: false, error: '미션을 시작하는데 실패했습니다.' }
+      console.error('미션 참가 조회 오류:', error)
+      return { success: false, error: '미션 참가 정보를 불러오는데 실패했습니다.' }
+    }
+  },
+
+  // 미션 참가 시작
+  async startMissionParticipation(userId: string, missionId: number): Promise<{ success: boolean; participation?: MissionParticipation; error?: string }> {
+    try {
+      // 기존 참가 확인
+      const existingResult = await this.getMissionParticipation(userId, missionId)
+      if (existingResult.success && existingResult.participation) {
+        if (existingResult.participation.status === 'in_progress') {
+          return { success: false, error: '이미 진행 중인 미션입니다.' }
+        }
+        if (existingResult.participation.status === 'completed') {
+          return { success: false, error: '이미 완료된 미션입니다.' }
+        }
+      }
+
+      // 미션 정보 조회
+      const { data: mission, error: missionError } = await supabase
+        .from('missions')
+        .select('*')
+        .eq('id', missionId)
+        .eq('is_active', true)
+        .single()
+
+      if (missionError || !mission) {
+        return { success: false, error: '유효하지 않은 미션입니다.' }
+      }
+
+      // 참가 시작
+      const { data, error } = await supabase
+        .from('mission_participations')
+        .upsert({
+          user_id: userId,
+          mission_id: missionId,
+          status: 'in_progress',
+          started_at: new Date().toISOString(),
+          reward_amount: mission.reward_amount
+        })
+        .select()
+        .single()
+
+      if (error) throw error
+
+      const participation: MissionParticipation = {
+        id: data.id,
+        userId: data.user_id,
+        missionId: data.mission_id,
+        status: data.status as MissionStatus,
+        startedAt: data.started_at,
+        completedAt: data.completed_at,
+        proofData: data.proof_data,
+        rewardAmount: data.reward_amount,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at
+      }
+
+      return { success: true, participation }
+    } catch (error) {
+      console.error('미션 참가 시작 오류:', error)
+      return { success: false, error: '미션 참가를 시작하는데 실패했습니다.' }
     }
   },
 
   // 미션 완료
-  async completeMission(userId: string, missionInstanceId: string, proofUrl?: string): Promise<{ success: boolean; error?: string }> {
+  async completeMissionParticipation(userId: string, missionId: number, proofData: Record<string, unknown>): Promise<{ success: boolean; participation?: MissionParticipation; error?: string }> {
     try {
-      const { error } = await supabase
-        .from('user_missions')
+      // 참가 상태 확인
+      const participationResult = await this.getMissionParticipation(userId, missionId)
+      if (!participationResult.success || !participationResult.participation) {
+        return { success: false, error: '참가하지 않은 미션입니다.' }
+      }
+
+      const participation = participationResult.participation
+      if (participation.status !== 'in_progress') {
+        return { success: false, error: '진행 중인 미션이 아닙니다.' }
+      }
+
+      // 미션 완료
+      const { data, error } = await supabase
+        .from('mission_participations')
         .update({
           status: 'completed',
           completed_at: new Date().toISOString(),
-          proof_url: proofUrl
+          proof_data: proofData
         })
-        .eq('user_id', userId)
-        .eq('mission_instance_id', missionInstanceId)
+        .eq('id', participation.id)
+        .select()
+        .single()
 
-      if (error) {
-        console.error('미션 완료 오류:', error)
-        return { success: false, error: '미션을 완료하는데 실패했습니다.' }
+      if (error) throw error
+
+      const updatedParticipation: MissionParticipation = {
+        id: data.id,
+        userId: data.user_id,
+        missionId: data.mission_id,
+        status: data.status as MissionStatus,
+        startedAt: data.started_at,
+        completedAt: data.completed_at,
+        proofData: data.proof_data,
+        rewardAmount: data.reward_amount,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at
       }
 
-      return { success: true }
+      // 페이백 생성
+      await this.createPayback(userId, missionId, participation.rewardAmount)
+
+      return { success: true, participation: updatedParticipation }
     } catch (error) {
       console.error('미션 완료 오류:', error)
       return { success: false, error: '미션을 완료하는데 실패했습니다.' }
     }
   },
 
-  // 미션 타입별 통계 조회
-  async getMissionStats(): Promise<{ success: boolean; stats?: Record<string, unknown>; error?: string }> {
+  // 페이백 생성
+  async createPayback(_userId: string, missionId: number, amount: number): Promise<void> {
     try {
-      const { data, error } = await supabase
-        .rpc('get_branch_mission_stats', { branch_code: 'default' }) // 실제로는 사용자의 지점 코드 사용
-
-      if (error) {
-        console.error('미션 통계 조회 오류:', error)
-        return { success: false, error: '미션 통계를 불러오는데 실패했습니다.' }
-      }
-
-      return { success: true, stats: data }
+      await supabase
+        .from('paybacks')
+        .insert({
+          user_id: _userId,
+          mission_id: missionId,
+          amount: amount,
+          status: 'pending'
+        })
     } catch (error) {
-      console.error('미션 통계 조회 오류:', error)
-      return { success: false, error: '미션 통계를 불러오는데 실패했습니다.' }
+      console.error('페이백 생성 오류:', error)
     }
   },
 
-  // 지점별 미션 템플릿 조회
-  async getBranchMissionTemplates(): Promise<{ success: boolean; templates?: Record<string, unknown>[]; error?: string }> {
+  // 미션 목록 조회 (기존 함수 유지)
+  async getUserMissions(_userId: string): Promise<{ success: boolean; missions?: Mission[]; error?: string }> {
     try {
       const { data, error } = await supabase
-        .from('mission_templates')
-        .select(`
-          id,
-          title,
-          description,
-          reward_amount,
-          requirements,
-          mission_types!inner(name)
-        `)
+        .from('missions')
+        .select('*')
         .eq('is_active', true)
+        .order('id')
 
-      if (error) {
-        console.error('미션 템플릿 조회 오류:', error)
-        return { success: false, error: '미션 템플릿을 불러오는데 실패했습니다.' }
-      }
+      if (error) throw error
 
-      return { success: true, templates: data }
+      const missions: Mission[] = (data || []).map(m => ({
+        id: m.id,
+        title: m.title,
+        description: m.description,
+        rewardAmount: m.reward_amount,
+        missionType: m.mission_type as Mission['missionType'],
+        isActive: m.is_active,
+        createdAt: m.created_at
+      }))
+
+      return { success: true, missions }
     } catch (error) {
-      console.error('미션 템플릿 조회 오류:', error)
-      return { success: false, error: '미션 템플릿을 불러오는데 실패했습니다.' }
+      console.error('미션 조회 오류:', error)
+      return { success: false, error: '미션을 불러오는데 실패했습니다.' }
     }
   }
 }
-
-// 개별 함수 export
-export const { startMission, completeMission, getUserMissions, getMissionStats, getBranchMissionTemplates } = missionService

@@ -4,16 +4,16 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { type Mission } from '@/types'
+import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { ProgressRing } from './ProgressRing'
 
 interface MissionCardProps {
   mission: Mission
-  onStart?: () => void
-  onComplete?: () => void
 }
 
-export function MissionCard({ mission, onStart, onComplete }: MissionCardProps) {
+export function MissionCard({ mission }: MissionCardProps) {
+  const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
 
   const getStatusColor = (status: string) => {
@@ -64,13 +64,34 @@ export function MissionCard({ mission, onStart, onComplete }: MissionCardProps) 
 
     setIsLoading(true)
     try {
-      if (mission.status === 'pending' && onStart) {
-        await onStart()
-      } else if (mission.status === 'in_progress' && onComplete) {
-        await onComplete()
+      if (mission.status === 'pending') {
+        // 미션 시작 - 해당 미션의 상세 페이지로 이동
+        const missionPath = getMissionPath(mission.missionType)
+        router.push(missionPath)
+      } else if (mission.status === 'in_progress') {
+        // 진행 중인 미션은 상세 페이지로 이동하여 완료 처리
+        const missionPath = getMissionPath(mission.missionType)
+        router.push(missionPath)
       }
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const getMissionPath = (missionType: string): string => {
+    switch (missionType) {
+      case 'challenge':
+        return '/missions/challenge'
+      case 'sns':
+        return '/missions/sns'
+      case 'review':
+        return '/missions/review'
+      case 'referral':
+        return '/missions/referral'
+      case 'attendance':
+        return '/missions/attendance'
+      default:
+        return '/missions/challenge'
     }
   }
 
@@ -86,7 +107,10 @@ export function MissionCard({ mission, onStart, onComplete }: MissionCardProps) 
     if (mission.status === 'pending') {
       return (
         <Button
-          onClick={handleAction}
+          onClick={(e) => {
+            e.stopPropagation()
+            handleAction()
+          }}
           disabled={isLoading}
           className="w-full bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90"
         >
@@ -98,7 +122,10 @@ export function MissionCard({ mission, onStart, onComplete }: MissionCardProps) 
     if (mission.status === 'in_progress') {
       return (
         <Button
-          onClick={handleAction}
+          onClick={(e) => {
+            e.stopPropagation()
+            handleAction()
+          }}
           disabled={isLoading}
           variant="outline"
           className="w-full border-border text-white hover:bg-secondary"
@@ -112,7 +139,15 @@ export function MissionCard({ mission, onStart, onComplete }: MissionCardProps) 
   }
 
   return (
-    <Card className="gradient-card border-border hover:border-primary/50 transition-all duration-300">
+    <Card
+      className="gradient-card border-border hover:border-primary/50 transition-all duration-300 cursor-pointer"
+      onClick={() => {
+        if (mission.status === 'pending' || mission.status === 'in_progress') {
+          const missionPath = getMissionPath(mission.missionType)
+          router.push(missionPath)
+        }
+      }}
+    >
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex items-center space-x-2">

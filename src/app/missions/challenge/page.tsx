@@ -5,55 +5,43 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { missionService, type Mission } from '@/lib/services/missions'
+import { useAppStore } from '@/lib/store'
+import { missionService } from '@/lib/services/missions'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
+import { useRouter } from 'next/navigation'
 
 export default function ChallengeMissionPage() {
+  const router = useRouter()
+  const { user, missions, userMissions, loadUserMissions, loadPaybacks } = useAppStore()
   const [loading, setLoading] = useState(true)
-  const [mission, setMission] = useState<Mission | null>(null)
-  const [user, setUser] = useState<Record<string, unknown> | null>(null)
-  const [proofUrl, setProofUrl] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [proofUrl, setProofUrl] = useState('')
+  const [studyHours, setStudyHours] = useState('')
+
+  // 챌린지 미션 찾기
+  const challengeMission = missions.find(m => m.missionType === 'challenge')
+  const userParticipation = userMissions.find(um => um.missionId === challengeMission?.id)
 
   useEffect(() => {
-    loadMissionData()
-  }, [])
-
-  const loadMissionData = async () => {
-    try {
-      setLoading(true)
-
-      // 사용자 정보 로드 (실제로는 인증된 사용자 ID 사용)
-      const userData = localStorage.getItem('user')
-      if (userData) {
-        const currentUser = JSON.parse(userData)
-        setUser(currentUser)
-
-        // 챌린지 미션 조회
-        const result = await missionService.getUserMissions(currentUser.id)
-        if (result.success && result.missions) {
-          const challengeMission = result.missions.find(m => m.mission_type === 'challenge')
-          setMission(challengeMission || null)
-        }
-      }
-    } catch (error) {
-      console.error('미션 데이터 로드 오류:', error)
-      toast.error('미션을 불러오는데 실패했습니다.')
-    } finally {
-      setLoading(false)
+    if (!user) {
+      router.push('/login')
+      return
     }
-  }
+    setLoading(false)
+  }, [user, router])
 
   const handleStartMission = async () => {
-    if (!user || !mission) return
+    if (!user || !challengeMission) return
 
     try {
       setSubmitting(true)
-      const result = await missionService.startMission(user.id as string, mission.id)
+      const result = await missionService.startMissionParticipation(user.id, challengeMission.id)
+      
       if (result.success) {
         toast.success('챌린지 미션이 시작되었습니다!')
-        loadMissionData() // 데이터 새로고침
+        await loadUserMissions()
+        await loadPaybacks()
       } else {
         toast.error(result.error || '미션 시작에 실패했습니다.')
       }
@@ -66,20 +54,40 @@ export default function ChallengeMissionPage() {
   }
 
   const handleCompleteMission = async () => {
-    if (!user || !mission) return
+    if (!user || !challengeMission) return
 
     if (!proofUrl.trim()) {
       toast.error('증명 URL을 입력해주세요.')
       return
     }
 
+    if (!studyHours.trim() || parseInt(studyHours) < 1) {
+      toast.error('학습 시간을 입력해주세요.')
+      return
+    }
+
     try {
       setSubmitting(true)
-      const result = await missionService.completeMission(user.id as string, mission.id, proofUrl)
+      
+      const proofData = {
+        type: 'challenge',
+        studyHours: parseInt(studyHours),
+        certificateImageUrl: proofUrl,
+        submittedAt: new Date().toISOString()
+      }
+
+      const result = await missionService.completeMissionParticipation(
+        user.id, 
+        challengeMission.id, 
+        proofData
+      )
+      
       if (result.success) {
         toast.success('챌린지 미션이 완료되었습니다!')
-        loadMissionData() // 데이터 새로고침
+        await loadUserMissions()
+        await loadPaybacks()
         setProofUrl('')
+        setStudyHours('')
       } else {
         toast.error(result.error || '미션 완료에 실패했습니다.')
       }
@@ -104,6 +112,10 @@ export default function ChallengeMissionPage() {
     )
   }
 
+  if (!user) {
+    return null
+  }
+
   return (
     <div className="min-h-screen bg-background p-4">
       <div className="max-w-2xl mx-auto space-y-6">
@@ -112,10 +124,10 @@ export default function ChallengeMissionPage() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => window.history.back()}
+            onClick={() => router.push('/dashboard')}
             className="text-muted-foreground"
           >
-            ← 뒤로
+            ← 대시보드로
           </Button>
           <div>
             <h1 className="text-2xl font-bold text-white">챌린지 미션</h1>
@@ -123,7 +135,7 @@ export default function ChallengeMissionPage() {
           </div>
         </div>
 
-        {mission ? (
+        {challengeMission ? (
           <Card className="gradient-card border-border">
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -131,7 +143,7 @@ export default function ChallengeMissionPage() {
                   <span className="text-3xl">🎯</span>
                   <div>
                     <CardTitle className="text-white text-xl">
-                      {mission.title}
+                      {challengeMission.title}
                     </CardTitle>
                     <p className="text-muted-foreground text-sm">
                       챌린지 미션
@@ -141,15 +153,15 @@ export default function ChallengeMissionPage() {
                 <Badge
                   variant="outline"
                   className={`${
-                    mission.status === 'completed'
+                    userParticipation?.status === 'completed'
                       ? 'bg-green-500/20 text-green-400 border-green-500/30'
-                      : mission.status === 'in_progress'
+                      : userParticipation?.status === 'in_progress'
                       ? 'bg-blue-500/20 text-blue-400 border-blue-500/30'
                       : 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'
                   }`}
                 >
-                  {mission.status === 'completed' ? '완료' :
-                   mission.status === 'in_progress' ? '진행 중' : '대기'}
+                  {userParticipation?.status === 'completed' ? '완료' :
+                   userParticipation?.status === 'in_progress' ? '진행 중' : '대기'}
                 </Badge>
               </div>
             </CardHeader>
@@ -158,7 +170,7 @@ export default function ChallengeMissionPage() {
               <div>
                 <h3 className="text-white font-semibold mb-2">미션 설명</h3>
                 <p className="text-muted-foreground">
-                  {mission.description}
+                  {challengeMission.description}
                 </p>
               </div>
 
@@ -166,7 +178,7 @@ export default function ChallengeMissionPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="text-white font-bold text-lg">
-                      {mission.reward_amount.toLocaleString()}원
+                      {challengeMission.rewardAmount.toLocaleString()}원
                     </div>
                     <div className="text-muted-foreground text-sm">
                       보상 금액
@@ -176,7 +188,7 @@ export default function ChallengeMissionPage() {
                 </div>
               </div>
 
-              {mission.status === 'pending' && (
+              {!userParticipation && (
                 <Button
                   onClick={handleStartMission}
                   disabled={submitting}
@@ -186,8 +198,26 @@ export default function ChallengeMissionPage() {
                 </Button>
               )}
 
-              {mission.status === 'in_progress' && (
+              {userParticipation?.status === 'in_progress' && (
                 <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="studyHours" className="text-white">
+                      학습 시간 (시간)
+                    </Label>
+                    <Input
+                      id="studyHours"
+                      type="number"
+                      min="1"
+                      placeholder="예: 10"
+                      value={studyHours}
+                      onChange={(e) => setStudyHours(e.target.value)}
+                      className="bg-secondary/50 border-border text-white mt-1"
+                    />
+                    <p className="text-muted-foreground text-xs mt-1">
+                      실제 학습한 시간을 입력해주세요
+                    </p>
+                  </div>
+
                   <div>
                     <Label htmlFor="proofUrl" className="text-white">
                       증명 URL
@@ -195,19 +225,19 @@ export default function ChallengeMissionPage() {
                     <Input
                       id="proofUrl"
                       type="url"
-                      placeholder="https://example.com/proof"
+                      placeholder="https://example.com/certificate"
                       value={proofUrl}
                       onChange={(e) => setProofUrl(e.target.value)}
                       className="bg-secondary/50 border-border text-white mt-1"
                     />
                     <p className="text-muted-foreground text-xs mt-1">
-                      미션 완료 증명을 위한 URL을 입력해주세요
+                      학습 증명서나 인증서 URL을 입력해주세요
                     </p>
                   </div>
 
                   <Button
                     onClick={handleCompleteMission}
-                    disabled={submitting || !proofUrl.trim()}
+                    disabled={submitting || !proofUrl.trim() || !studyHours.trim()}
                     className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-500/90 hover:to-emerald-600/90"
                   >
                     {submitting ? '완료 중...' : '미션 완료하기'}
@@ -215,13 +245,22 @@ export default function ChallengeMissionPage() {
                 </div>
               )}
 
-              {mission.status === 'completed' && (
+              {userParticipation?.status === 'completed' && (
                 <div className="text-center py-4">
                   <div className="text-4xl mb-2">✅</div>
                   <h3 className="text-white font-semibold mb-1">미션 완료!</h3>
                   <p className="text-muted-foreground">
                     축하합니다! 챌린지 미션을 성공적으로 완료했습니다.
                   </p>
+                  <div className="mt-4">
+                    <Button
+                      onClick={() => router.push('/dashboard')}
+                      variant="outline"
+                      className="border-border text-white hover:bg-secondary"
+                    >
+                      대시보드로 돌아가기
+                    </Button>
+                  </div>
                 </div>
               )}
             </CardContent>
