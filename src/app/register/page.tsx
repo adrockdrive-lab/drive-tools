@@ -5,32 +5,48 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { authService } from '@/lib/services/auth'
+import { useStores } from '@/lib/store'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
-export default function RegisterPage() {
+function RegisterForm() {
   const router = useRouter()
+  const { stores, loadStores } = useStores()
   const [step, setStep] = useState(1)
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
     verificationCode: '',
-    branchCode: '',
+    storeId: '',
     referralCode: ''
   })
   const [isLoading, setIsLoading] = useState(false)
   const [countdown, setCountdown] = useState(0)
 
-  // URL에서 지점 및 추천 정보 추출
+    // URL에서 지점 및 추천 정보 추출
   useEffect(() => {
-    const params = authService.extractUrlParams()
-    setFormData(prev => ({
-      ...prev,
-      branchCode: params.branchCode || '',
-      referralCode: params.referralCode || ''
-    }))
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search)
+      const storeId = urlParams.get('store')
+      const referralCode = urlParams.get('ref')
+
+      if (storeId) {
+        setFormData(prev => ({
+          ...prev,
+          storeId: storeId,
+          referralCode: referralCode || ''
+        }))
+      }
+    }
   }, [])
+
+  // 지점 정보 로드
+  useEffect(() => {
+    if (stores.length === 0) {
+      loadStores()
+    }
+  }, [stores.length, loadStores])
 
   // 카운트다운 타이머
   useEffect(() => {
@@ -86,8 +102,16 @@ export default function RegisterPage() {
       return
     }
 
+    if (!formData.storeId) {
+      toast.error('지점을 선택해주세요.')
+      return
+    }
+
     setIsLoading(true)
-    const result = await authService.register(formData)
+    const result = await authService.register({
+      ...formData,
+      storeId: parseInt(formData.storeId)
+    })
     setIsLoading(false)
 
     if (result.success) {
@@ -96,6 +120,12 @@ export default function RegisterPage() {
     } else {
       toast.error(result.error || '회원가입에 실패했습니다.')
     }
+  }
+
+  const getSelectedStoreName = () => {
+    if (!formData.storeId) return ''
+    const store = stores.find(s => s.id.toString() === formData.storeId)
+    return store?.name || ''
   }
 
   return (
@@ -109,7 +139,7 @@ export default function RegisterPage() {
             <div className="text-4xl mb-2">🚗</div>
             <CardTitle className="text-2xl font-bold text-white">회원가입</CardTitle>
             <p className="text-muted-foreground mt-2">
-              {formData.branchCode ? `지점: ${formData.branchCode}` : '드라이빙존에 오신 것을 환영합니다!'}
+              {formData.storeId ? `지점: ${getSelectedStoreName()}` : '드라이빙존에 오신 것을 환영합니다!'}
             </p>
           </div>
         </CardHeader>
@@ -127,7 +157,7 @@ export default function RegisterPage() {
           {/* Step 1: 기본 정보 */}
           {step === 1 && (
             <div className="space-y-4">
-              <div>
+              <div className='flex flex-col gap-4'>
                 <Label htmlFor="name" className="text-white">이름</Label>
                 <Input
                   id="name"
@@ -139,7 +169,7 @@ export default function RegisterPage() {
                 />
               </div>
 
-              <div>
+              <div className='flex flex-col gap-4'>
                 <Label htmlFor="phone" className="text-white">휴대폰 번호</Label>
                 <Input
                   id="phone"
@@ -151,9 +181,41 @@ export default function RegisterPage() {
                 />
               </div>
 
+              <div className='flex flex-col gap-4'>
+                <Label htmlFor="storeId" className="text-white">지점 선택</Label>
+                <select
+                  id="storeId"
+                  value={formData.storeId}
+                  onChange={(e) => handleInputChange('storeId', e.target.value)}
+                  className="w-full bg-secondary/50 border border-border text-white rounded-md px-3 py-2"
+                >
+                  <option value="">지점을 선택해주세요</option>
+                  {stores.map((store) => (
+                    <option key={store.id} value={store.id}>
+                      {store.name} - {store.summaryAddress}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-muted-foreground mt-1">
+                  이용하실 지점을 선택해주세요.
+                </p>
+              </div>
+
+              <div className='flex flex-col gap-4'>
+                <Label htmlFor="referralCode" className="text-white">추천 코드 (선택사항)</Label>
+                <Input
+                  id="referralCode"
+                  type="text"
+                  placeholder="추천 코드가 있다면 입력해주세요"
+                  value={formData.referralCode}
+                  onChange={(e) => handleInputChange('referralCode', e.target.value)}
+                  className="bg-secondary/50 border-border text-white"
+                />
+              </div>
+
               <Button
                 onClick={() => setStep(2)}
-                disabled={!formData.name || !formData.phone}
+                disabled={!formData.name || !formData.phone || !formData.storeId}
                 className="w-full bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90"
               >
                 다음
@@ -228,15 +290,13 @@ export default function RegisterPage() {
                   <span className="text-muted-foreground">휴대폰:</span>
                   <span className="text-white">{formData.phone}</span>
                 </div>
-                {formData.branchCode && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">지점:</span>
-                    <span className="text-white">{formData.branchCode}</span>
-                  </div>
-                )}
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">지점:</span>
+                  <span className="text-white">{getSelectedStoreName()}</span>
+                </div>
                 {formData.referralCode && (
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">추천인:</span>
+                    <span className="text-muted-foreground">추천 코드:</span>
                     <span className="text-white">{formData.referralCode}</span>
                   </div>
                 )}
@@ -263,5 +323,13 @@ export default function RegisterPage() {
         </CardContent>
       </Card>
     </div>
+  )
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <RegisterForm />
+    </Suspense>
   )
 }

@@ -1,15 +1,17 @@
 import type {
-    AppActions,
-    AppState,
-    Mission,
-    Payback,
-    PaybackStatus,
-    Referral,
-    User,
-    UserMission
+  AppActions,
+  AppState,
+  Mission,
+  Payback,
+  PaybackStatus,
+  ProofData,
+  Referral,
+  User,
+  UserMission
 } from '@/types'
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
+import { useShallow } from 'zustand/react/shallow'
 import { supabase } from './supabase'
 
 type AppStore = AppState & AppActions & {
@@ -29,6 +31,8 @@ export const useAppStore = create<AppStore>()(
       // ===============================================
       user: null,
       isAuthenticated: false,
+      stores: [],
+      currentStore: null,
       missions: [],
       userMissions: [],
       paybacks: [],
@@ -45,6 +49,31 @@ export const useAppStore = create<AppStore>()(
           user,
           isAuthenticated: !!user
         })
+      },
+
+      // ===============================================
+      // Store Actions
+      // ===============================================
+      setStores: (stores) => {
+        set({ stores })
+      },
+
+      setCurrentStore: (store) => {
+        set({ currentStore: store })
+      },
+
+      loadStores: async () => {
+        try {
+          const { storeService } = await import('@/lib/services/stores')
+          const result = await storeService.getAllStores()
+
+          if (result.success && result.stores) {
+            set({ stores: result.stores })
+          }
+        } catch (error) {
+          console.error('Stores load error:', error)
+          set({ error: error instanceof Error ? error.message : 'Failed to load stores' })
+        }
       },
 
       login: async (phone) => {
@@ -74,6 +103,7 @@ export const useAppStore = create<AppStore>()(
             name: data.name,
             phone: data.phone,
             phoneVerified: data.phone_verified,
+            storeId: data.store_id,
             createdAt: data.created_at,
             updatedAt: data.updated_at
           }
@@ -153,6 +183,7 @@ export const useAppStore = create<AppStore>()(
             rewardAmount: m.reward_amount,
             missionType: m.mission_type as Mission['missionType'],
             isActive: m.is_active,
+            storeId: m.store_id,
             createdAt: m.created_at
           }))
 
@@ -179,7 +210,7 @@ export const useAppStore = create<AppStore>()(
               userId: p.userId,
               missionId: p.missionId,
               status: p.status,
-              proofData: p.proofData as any, // 타입 캐스팅으로 임시 해결
+              proofData: p.proofData as ProofData | null,
               completedAt: p.completedAt,
               createdAt: p.createdAt
             }))
@@ -231,6 +262,7 @@ export const useAppStore = create<AppStore>()(
             missionId: p.mission_id,
             amount: p.amount,
             status: p.status as PaybackStatus,
+            storeId: p.store_id,
             paidAt: p.paid_at,
             createdAt: p.created_at
           }))
@@ -261,7 +293,8 @@ export const useAppStore = create<AppStore>()(
               referee_name: referralData.refereeName,
               referee_phone: referralData.refereePhone,
               is_verified: referralData.isVerified,
-              reward_paid: referralData.rewardPaid
+              reward_paid: referralData.rewardPaid,
+              store_id: user.storeId
             })
             .select()
             .single()
@@ -275,6 +308,7 @@ export const useAppStore = create<AppStore>()(
             refereePhone: data.referee_phone,
             isVerified: data.is_verified,
             rewardPaid: data.reward_paid,
+            storeId: data.store_id,
             createdAt: data.created_at
           }
 
@@ -307,6 +341,7 @@ export const useAppStore = create<AppStore>()(
             refereePhone: r.referee_phone,
             isVerified: r.is_verified,
             rewardPaid: r.reward_paid,
+            storeId: r.store_id,
             createdAt: r.created_at
           }))
 
@@ -348,6 +383,11 @@ export const useAppStore = create<AppStore>()(
             isAuthenticated: get().isAuthenticated,
             isLoading: get().isLoading
           })
+
+          // Load stores first
+          console.log('Loading stores...')
+          await get().loadStores()
+          console.log('Stores loaded successfully')
 
           console.log('Loading missions...')
           // Load missions (public data)
@@ -422,6 +462,13 @@ export const useReferrals = () => useAppStore((state) => ({
   loadReferrals: state.loadReferrals,
   addReferral: state.addReferral
 }))
+
+export const useStores = () => useAppStore(useShallow((state) => ({
+  stores: state.stores,
+  currentStore: state.currentStore,
+  loadStores: state.loadStores,
+  setCurrentStore: state.setCurrentStore
+})))
 
 export const useUI = () => useAppStore((state) => ({
   isLoading: state.isLoading,

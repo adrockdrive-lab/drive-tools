@@ -4,7 +4,7 @@ export interface RegisterData {
   name: string
   phone: string
   verificationCode: string
-  branchCode?: string // URL에서 추출한 지점 코드
+  storeId?: number // 지점 ID
   referralCode?: string // URL에서 추출한 추천 코드
 }
 
@@ -99,18 +99,16 @@ export const authService = {
   // 회원가입 (지점 정보 포함)
   async register(data: RegisterData): Promise<{ success: boolean; user?: Record<string, unknown>; error?: string }> {
     try {
-      // 1. 지점 정보 조회
-      let branchId = null
-      if (data.branchCode) {
-        const { data: branchData, error: branchError } = await supabase
-          .from('branches')
+      // 1. 지점 정보 검증
+      if (data.storeId) {
+        const { data: storeData, error: storeError } = await supabase
+          .from('stores')
           .select('id')
-          .eq('code', data.branchCode)
-          .eq('is_active', true)
+          .eq('id', data.storeId)
           .single()
 
-        if (!branchError && branchData) {
-          branchId = branchData.id
+        if (storeError || !storeData) {
+          return { success: false, error: '유효하지 않은 지점입니다.' }
         }
       }
 
@@ -139,7 +137,7 @@ export const authService = {
           name: data.name,
           phone: normalizedPhone,
           phone_verified: true,
-          branch_id: branchId,
+          store_id: data.storeId,
           referral_code: referralCode,
           referred_by: referredBy
         })
@@ -252,12 +250,12 @@ export const authService = {
   },
 
   // URL에서 지점 및 추천 정보 추출
-  extractUrlParams(): { branchCode?: string; referralCode?: string } {
+  extractUrlParams(): { storeId?: string; referralCode?: string } {
     if (typeof window === 'undefined') return {}
 
     const urlParams = new URLSearchParams(window.location.search)
     return {
-      branchCode: urlParams.get('branch') || undefined,
+      storeId: urlParams.get('store') || undefined,
       referralCode: urlParams.get('ref') || undefined
     }
   }

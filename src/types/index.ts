@@ -2,12 +2,43 @@
 // 타입 정의 - 드라이빙존 미션 시스템
 // ===============================================
 
+export interface Store {
+  id: number
+  name: string
+  isDirect: boolean
+  isNearTestCenter: boolean
+  isSundayOpen: boolean
+  hasFreePhoto: boolean
+  roadAddress: string
+  address: string
+  summaryAddress: string
+  latitude: number
+  longitude: number
+  phoneNumber: string
+  maxCapacity: number
+  machineCountClass1: number
+  machineCountClass2: number
+  openingDate: string
+  hasWifi: boolean
+  hasRestrooms: boolean
+  hasParking: boolean
+  paymentInfo: string
+  metaKeywords: string
+  recommendedTestCenter1?: string
+  recommendedTestCenter2?: string
+  recommendedTestCenter3?: string
+  operatingHoursNote?: string
+  createdAt: string
+  updatedAt: string
+}
+
 export interface User {
   id: string
   name: string
   phone: string
   phoneVerified: boolean
   referralCode?: string
+  storeId?: number
   createdAt: string
   updatedAt: string
   // 게이미피케이션 속성들
@@ -23,6 +54,7 @@ export interface Mission {
   rewardAmount: number
   missionType: MissionType
   isActive: boolean
+  storeId?: number
   createdAt: string
   status?: MissionStatus
 }
@@ -34,6 +66,7 @@ export interface UserMission {
   status: MissionStatus
   proofData: ProofData | null
   completedAt: string | null
+  storeId?: number
   createdAt: string
 }
 
@@ -44,6 +77,7 @@ export interface Payback {
   amount: number
   status: PaybackStatus
   paidAt: string | null
+  storeId?: number
   createdAt: string
 }
 
@@ -54,6 +88,7 @@ export interface Referral {
   refereePhone: string
   isVerified: boolean
   rewardPaid: boolean
+  storeId?: number
   createdAt: string
 }
 
@@ -190,6 +225,10 @@ export interface AppState {
   user: User | null
   isAuthenticated: boolean
 
+  // 지점 상태
+  stores: Store[]
+  currentStore: Store | null
+
   // 미션 상태
   missions: Mission[]
   userMissions: UserMission[]
@@ -211,6 +250,11 @@ export interface AppActions {
   setUser: (user: User | null) => void
   login: (phone: string) => Promise<void>
   logout: () => void
+
+  // 지점 액션
+  setStores: (stores: Store[]) => void
+  setCurrentStore: (store: Store | null) => void
+  loadStores: () => Promise<void>
 
   // 미션 액션
   setMissions: (missions: Mission[]) => void
