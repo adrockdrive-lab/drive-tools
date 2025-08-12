@@ -19,14 +19,14 @@ const sizeConfig = {
   lg: { diameter: 140, strokeWidth: 8, fontSize: 'text-lg' }
 };
 
-export function ProgressRing({ 
-  progress, 
-  size = 'md', 
-  showValue = true, 
+export function ProgressRing({
+  progress,
+  size = 'md',
+  showValue = true,
   animated = true,
   color = '#3B82F6',
   thickness,
-  children 
+  children
 }: ProgressRingProps) {
   const [displayProgress, setDisplayProgress] = useState(animated ? 0 : progress);
   const config = sizeConfig[size];
@@ -63,7 +63,7 @@ export function ProgressRing({
           fill="transparent"
           className="text-gray-200 dark:text-gray-700"
         />
-        
+
         {/* Progress circle */}
         <motion.circle
           cx={diameter / 2}
@@ -88,7 +88,7 @@ export function ProgressRing({
           }}
         />
       </svg>
-      
+
       {/* Center content */}
       <div className={`absolute inset-0 flex items-center justify-center ${config.fontSize} font-semibold`}>
         {children || (showValue && (
@@ -96,7 +96,7 @@ export function ProgressRing({
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: animated ? 0.5 : 0, duration: 0.3 }}
-            className="text-gray-900 dark:text-white"
+            className="text-gray-900 dark:text-black"
           >
             {Math.round(displayProgress)}%
           </motion.span>

@@ -12,19 +12,19 @@ import { Separator } from '@/components/ui/separator';
 import { useAppStore } from '@/lib/store';
 import { motion } from 'framer-motion';
 import {
-    ArrowLeft,
-    Award,
-    Calendar,
-    CheckCircle,
-    Clock,
-    Coins,
-    Copy,
-    Phone,
-    Share2,
-    Target,
-    TrendingUp,
-    Trophy,
-    Users
+  ArrowLeft,
+  Award,
+  Calendar,
+  CheckCircle,
+  Clock,
+  Coins,
+  Copy,
+  Phone,
+  Share2,
+  Target,
+  TrendingUp,
+  Trophy,
+  Users
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -166,7 +166,7 @@ export default function ProfilePage() {
               <CardHeader className="text-center pb-4">
                 <div className="relative inline-block">
                   <Avatar className="w-24 h-24 mx-auto mb-4">
-                    <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-3xl">
+                    <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-black text-3xl">
                       {user.name?.charAt(0) || 'U'}
                     </AvatarFallback>
                   </Avatar>
@@ -256,7 +256,7 @@ export default function ProfilePage() {
               <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-800">
                 <CardContent className="p-6 text-center">
                   <div className="flex items-center justify-center w-12 h-12 bg-green-500 rounded-full mx-auto mb-4">
-                    <Target className="w-6 h-6 text-white" />
+                    <Target className="w-6 h-6 text-blue-600" />
                   </div>
                   <h3 className="text-2xl font-bold text-green-700 dark:text-green-400">
                     {completedMissions}
@@ -274,7 +274,7 @@ export default function ProfilePage() {
               <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-800">
                 <CardContent className="p-6 text-center">
                   <div className="flex items-center justify-center w-12 h-12 bg-blue-500 rounded-full mx-auto mb-4">
-                    <Coins className="w-6 h-6 text-white" />
+                    <Coins className="w-6 h-6 text-blue-600" />
                   </div>
                   <div className="text-2xl font-bold text-blue-700 dark:text-blue-400">
                     {totalPaidAmount.toLocaleString()}원
@@ -289,7 +289,7 @@ export default function ProfilePage() {
               <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border-purple-200 dark:border-purple-800">
                 <CardContent className="p-6 text-center">
                   <div className="flex items-center justify-center w-12 h-12 bg-purple-500 rounded-full mx-auto mb-4">
-                    <TrendingUp className="w-6 h-6 text-white" />
+                    <TrendingUp className="w-6 h-6 text-blue-600" />
                   </div>
                   <h3 className="text-2xl font-bold text-purple-700 dark:text-purple-400">
                     {Math.round(completionRate)}%

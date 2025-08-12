@@ -47,13 +47,13 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <Card className="w-full max-w-md gradient-card border-border">
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <Card className="w-full max-w-md bg-white border-gray-200 shadow-lg">
         <CardHeader className="text-center">
           <div className="mb-4">
             <div className="text-4xl mb-2">👨‍💼</div>
-            <CardTitle className="text-2xl font-bold text-white">관리자 로그인</CardTitle>
-            <p className="text-muted-foreground mt-2">
+            <CardTitle className="text-2xl font-bold text-gray-900">관리자 로그인</CardTitle>
+            <p className="text-gray-600 mt-2">
               지점별 사용자 관리 시스템
             </p>
           </div>
@@ -62,27 +62,27 @@ export default function AdminLoginPage() {
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <Label htmlFor="email" className="text-white">이메일</Label>
+              <Label htmlFor="email" className="text-gray-900">이메일</Label>
               <Input
                 id="email"
                 type="email"
                 placeholder="admin@example.com"
                 value={formData.email}
                 onChange={(e) => handleInputChange('email', e.target.value)}
-                className="bg-secondary/50 border-border text-white"
+                className="bg-gray-50 border-gray-300 text-gray-900"
                 required
               />
             </div>
 
             <div>
-              <Label htmlFor="password" className="text-white">비밀번호</Label>
+              <Label htmlFor="password" className="text-gray-900">비밀번호</Label>
               <Input
                 id="password"
                 type="password"
                 placeholder="비밀번호를 입력하세요"
                 value={formData.password}
                 onChange={(e) => handleInputChange('password', e.target.value)}
-                className="bg-secondary/50 border-border text-white"
+                className="bg-gray-50 border-gray-300 text-gray-900"
                 required
               />
             </div>

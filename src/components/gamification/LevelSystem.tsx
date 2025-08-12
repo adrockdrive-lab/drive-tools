@@ -62,7 +62,7 @@ export function LevelBadge({ level, size = 'md', showRing = true, animated = tru
           style={{ borderColor: levelInfo.color }}
         >
           <div
-            className="w-full h-full rounded-full flex flex-col items-center justify-center text-white font-bold"
+            className="w-full h-full rounded-full flex flex-col items-center justify-center text-black font-bold"
             style={{ backgroundColor: levelInfo.color }}
           >
             <span className={config.icon}>{levelInfo.icon}</span>
@@ -121,7 +121,7 @@ export function LevelSystem({
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between mb-1">
             <div>
-              <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-black">
                 {levelInfo.title}
               </h3>
               <p className="text-xs text-gray-500 dark:text-gray-400">
@@ -129,7 +129,7 @@ export function LevelSystem({
               </p>
             </div>
             <div className="text-right">
-              <p className="text-xs font-medium text-gray-900 dark:text-white">
+              <p className="text-xs font-medium text-gray-900 dark:text-black">
                 {currentExp.toLocaleString()} / {expToNext.toLocaleString()} XP
               </p>
               <p className="text-xs text-gray-500 dark:text-gray-400">
@@ -161,7 +161,7 @@ export function LevelSystem({
                   animate={{ opacity: 1, y: -30, scale: 1 }}
                   exit={{ opacity: 0, y: -50 }}
                   transition={{ duration: 2 }}
-                  className="absolute right-0 top-0 bg-purple-500 text-white text-xs px-2 py-1 rounded-full font-bold shadow-lg"
+                  className="absolute right-0 top-0 bg-purple-500 text-black text-xs px-2 py-1 rounded-full font-bold shadow-lg"
                 >
                   레벨업! 🎉
                 </motion.div>
@@ -202,7 +202,7 @@ export function LevelSystem({
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.4 }}
               >
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mt-4 mb-2">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-black mt-4 mb-2">
                   레벨 업!
                 </h2>
                 <p className="text-lg text-purple-600 dark:text-purple-400 font-semibold">
@@ -218,7 +218,7 @@ export function LevelSystem({
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.6 }}
                 onClick={() => setShowLevelUpEffect(false)}
-                className="mt-6 px-6 py-2 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors"
+                className="mt-6 px-6 py-2 bg-purple-600 text-black rounded-lg font-semibold hover:bg-purple-700 transition-colors"
               >
                 계속하기
               </motion.button>

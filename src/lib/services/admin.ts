@@ -40,33 +40,31 @@ export const adminService = {
     }
   },
 
-  // 지점별 사용자 미션 데이터 조회
-  async getUserMissions(storeId: number): Promise<{ success: boolean; data?: UserMissionData[]; error?: string }> {
+  // 전체 사용자 미션 데이터 조회
+  async getUserMissions(storeId?: number): Promise<{ success: boolean; data?: UserMissionData[]; error?: string }> {
     try {
       const { data, error } = await supabase
-        .from('mission_participations')
+        .from('user_missions')
         .select(`
           id,
-          started_at,
-          completed_at,
-          reward_amount,
+          status,
           proof_data,
+          completed_at,
           created_at,
           users!inner(
             name,
-            phone,
-            store_id
+            phone
           ),
           missions!inner(
             title,
-            mission_type
+            mission_type,
+            reward_amount
           ),
           paybacks(
             status,
             amount
           )
         `)
-        .eq('users.store_id', storeId)
         .order('created_at', { ascending: false })
 
       if (error) throw error
@@ -78,9 +76,9 @@ export const adminService = {
         missionTitle: item.missions.title,
         missionType: item.missions.mission_type as MissionType,
         status: item.status as MissionStatus,
-        startedAt: item.started_at,
+        startedAt: item.created_at,
         completedAt: item.completed_at,
-        rewardAmount: item.reward_amount,
+        rewardAmount: item.missions.reward_amount,
         proofData: item.proof_data as ProofData | null,
         paybackStatus: (item.paybacks?.[0]?.status as PaybackStatus) || null,
         paybackAmount: item.paybacks?.[0]?.amount || null,
@@ -99,8 +97,11 @@ export const adminService = {
     try {
       // 미션 참여 정보 조회
       const { data: participation, error: participationError } = await supabase
-        .from('mission_participations')
-        .select('*')
+        .from('user_missions')
+        .select(`
+          *,
+          missions!inner(reward_amount)
+        `)
         .eq('id', participationId)
         .single()
 
@@ -112,10 +113,9 @@ export const adminService = {
         .upsert({
           user_id: participation.user_id,
           mission_id: participation.mission_id,
-          amount: participation.reward_amount,
+          amount: participation.missions.reward_amount,
           status: 'paid',
-          paid_at: new Date().toISOString(),
-          store_id: participation.store_id
+          paid_at: new Date().toISOString()
         })
 
       if (paybackError) throw paybackError
@@ -132,8 +132,11 @@ export const adminService = {
     try {
       // 미션 참여 정보 조회
       const { data: participation, error: participationError } = await supabase
-        .from('mission_participations')
-        .select('*')
+        .from('user_missions')
+        .select(`
+          *,
+          missions!inner(reward_amount)
+        `)
         .eq('id', participationId)
         .single()
 
@@ -145,10 +148,9 @@ export const adminService = {
         .upsert({
           user_id: participation.user_id,
           mission_id: participation.mission_id,
-          amount: participation.reward_amount,
+          amount: participation.missions.reward_amount,
           status: 'rejected',
           paid_at: null,
-          store_id: participation.store_id,
           rejection_reason: reason
         })
 
@@ -161,8 +163,8 @@ export const adminService = {
     }
   },
 
-  // 지점별 통계 조회
-  async getStoreStats(storeId: number): Promise<{
+  // 전체 통계 조회 (storeId 제거 - 모든 데이터 조회)
+  async getStoreStats(storeId?: number): Promise<{
     success: boolean;
     stats?: {
       totalUsers: number
@@ -178,26 +180,22 @@ export const adminService = {
       const { count: totalUsers } = await supabase
         .from('users')
         .select('*', { count: 'exact', head: true })
-        .eq('store_id', storeId)
 
       // 총 미션 참여 수
       const { count: totalMissions } = await supabase
-        .from('mission_participations')
+        .from('user_missions')
         .select('*', { count: 'exact', head: true })
-        .eq('users.store_id', storeId)
 
       // 완료된 미션 수
       const { count: completedMissions } = await supabase
-        .from('mission_participations')
+        .from('user_missions')
         .select('*', { count: 'exact', head: true })
-        .eq('users.store_id', storeId)
         .eq('status', 'completed')
 
       // 총 페이백 금액
       const { data: paybacks } = await supabase
         .from('paybacks')
         .select('amount')
-        .eq('store_id', storeId)
         .eq('status', 'paid')
 
       const totalPayback = paybacks?.reduce((sum, p) => sum + p.amount, 0) || 0

@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import { useAppStore } from '@/lib/store'
+import { useEffect, useState } from 'react'
 
 export default function AppInitializer({ children }: { children: React.ReactNode }) {
   const { initializeApp, isLoading, error, clearError } = useAppStore()
@@ -39,13 +39,13 @@ export default function AppInitializer({ children }: { children: React.ReactNode
           <div className="text-red-500 text-4xl mb-4">⚠️</div>
           <h2 className="text-xl font-semibold text-gray-900 mb-2">앱 초기화 실패</h2>
           <p className="text-gray-600 mb-4">{error}</p>
-          <button 
+          <button
             onClick={() => {
               clearError()
               setRetryCount(0)
               setInitialized(false)
             }}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            className="px-4 py-2 bg-blue-600 text-black rounded-md hover:bg-blue-700"
           >
             다시 시도
           </button>

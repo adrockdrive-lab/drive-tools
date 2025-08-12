@@ -62,7 +62,7 @@ export default function AdminLayout({
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="text-2xl">로딩 중...</div>
         </div>
@@ -76,7 +76,7 @@ export default function AdminLayout({
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gray-50 flex">
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div
@@ -87,19 +87,19 @@ export default function AdminLayout({
 
       {/* Sidebar */}
       <div className={`
-        fixed inset-y-0 left-0 z-50 w-64 bg-secondary border-r border-border transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0
+        fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
         <div className="flex flex-col h-full">
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b border-border">
+          <div className="flex items-center justify-between p-4 border-b border-gray-200">
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">A</span>
+              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                <span className="text-black font-bold text-sm">A</span>
               </div>
               <div>
-                <h1 className="text-lg font-bold text-white">어드민</h1>
-                <p className="text-xs text-muted-foreground">관리자 시스템</p>
+                <h1 className="text-lg font-bold text-gray-900">어드민</h1>
+                <p className="text-xs text-gray-600">관리자 시스템</p>
               </div>
             </div>
             <Button
@@ -120,7 +120,7 @@ export default function AdminLayout({
                 <Button
                   key={item.name}
                   variant={isActive ? "default" : "ghost"}
-                  className={`w-full justify-start ${isActive ? 'bg-primary text-white' : 'text-muted-foreground hover:text-white'}`}
+                  className={`w-full justify-start ${isActive ? 'bg-blue-600 text-black' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'}`}
                   onClick={() => {
                     router.push(item.href)
                     setSidebarOpen(false)
@@ -134,10 +134,10 @@ export default function AdminLayout({
           </nav>
 
           {/* Footer */}
-          <div className="p-4 border-t border-border">
+          <div className="p-4 border-t border-gray-200">
             <Button
               variant="ghost"
-              className="w-full justify-start text-muted-foreground hover:text-white"
+              className="w-full justify-start text-gray-700 hover:text-gray-900 hover:bg-gray-100"
               onClick={handleLogout}
             >
               <LogOut className="mr-3 h-4 w-4" />
@@ -148,31 +148,33 @@ export default function AdminLayout({
       </div>
 
       {/* Main content */}
-      <div className="lg:pl-64">
-        {/* Top bar */}
-        <div className="sticky top-0 z-30 bg-background border-b border-border">
-          <div className="flex items-center justify-between px-4 py-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setSidebarOpen(true)}
-              className="lg:hidden"
-            >
-              <Menu className="h-5 w-5" />
-            </Button>
+      <div className="flex-1">
+        <div className="max-w-7xl mx-auto">
+          {/* Top bar */}
+          <div className="sticky top-0 z-30 bg-white border-b border-gray-200 shadow-sm">
+            <div className="flex items-center justify-between px-4 py-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSidebarOpen(true)}
+                className="lg:hidden"
+              >
+                <Menu className="h-5 w-5" />
+              </Button>
 
-            <div className="flex items-center space-x-4">
-              <div className="text-sm text-muted-foreground">
-                {admin?.name || '관리자'}님 환영합니다
+              <div className="flex items-center space-x-4">
+                <div className="text-sm text-gray-600">
+                  {admin?.name || '관리자'}님 환영합니다
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Page content */}
-        <main className="p-6">
-          {children}
-        </main>
+          {/* Page content */}
+          <main className="p-6">
+            {children}
+          </main>
+        </div>
       </div>
     </div>
   )

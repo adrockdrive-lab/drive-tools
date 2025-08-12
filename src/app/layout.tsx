@@ -35,7 +35,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko" className="dark">
+    <html lang="ko">
       <head>
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -45,7 +45,7 @@ export default function RootLayout({
         <meta name="msapplication-tap-highlight" content="no" />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased dark safe-area `}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased safe-area `}
       >
         {children}
         <Toaster

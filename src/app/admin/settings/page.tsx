@@ -66,7 +66,7 @@ export default function AdminSettingsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-white">설정</h1>
+        <h1 className="text-3xl font-bold text-black">설정</h1>
         <p className="text-muted-foreground">관리자 계정 및 시스템 설정</p>
       </div>
 
@@ -74,33 +74,33 @@ export default function AdminSettingsPage() {
         {/* Profile Settings */}
         <Card className="gradient-card border-border">
           <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
+            <CardTitle className="text-black flex items-center gap-2">
               <User className="h-5 w-5" />
               프로필 설정
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label htmlFor="name" className="text-white">이름</Label>
+              <Label htmlFor="name" className="text-black">이름</Label>
               <Input
                 id="name"
                 value={settings.name}
                 onChange={(e) => setSettings(prev => ({ ...prev, name: e.target.value }))}
-                className="bg-secondary/50 border-border text-white"
+                className="bg-secondary/50 border-border text-black"
               />
             </div>
             <div>
-              <Label htmlFor="email" className="text-white">이메일</Label>
+              <Label htmlFor="email" className="text-black">이메일</Label>
               <Input
                 id="email"
                 type="email"
                 value={settings.email}
                 onChange={(e) => setSettings(prev => ({ ...prev, email: e.target.value }))}
-                className="bg-secondary/50 border-border text-white"
+                className="bg-secondary/50 border-border text-black"
               />
             </div>
             <div>
-              <Label htmlFor="storeName" className="text-white">담당 지점</Label>
+              <Label htmlFor="storeName" className="text-black">담당 지점</Label>
               <Input
                 id="storeName"
                 value={settings.storeName}
@@ -109,7 +109,7 @@ export default function AdminSettingsPage() {
               />
             </div>
             <div>
-              <Label htmlFor="role" className="text-white">권한</Label>
+              <Label htmlFor="role" className="text-black">권한</Label>
               <div className="flex items-center gap-2 mt-1">
                 <Badge variant="outline">{settings.role === 'admin' ? '관리자' : '슈퍼 관리자'}</Badge>
               </div>
@@ -120,20 +120,20 @@ export default function AdminSettingsPage() {
         {/* Store Settings */}
         <Card className="gradient-card border-border">
           <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
+            <CardTitle className="text-black flex items-center gap-2">
               <Building className="h-5 w-5" />
               지점 설정
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label htmlFor="maxPaybackAmount" className="text-white">최대 페이백 금액</Label>
+              <Label htmlFor="maxPaybackAmount" className="text-black">최대 페이백 금액</Label>
               <Input
                 id="maxPaybackAmount"
                 type="number"
                 value={settings.maxPaybackAmount}
                 onChange={(e) => setSettings(prev => ({ ...prev, maxPaybackAmount: parseInt(e.target.value) || 0 }))}
-                className="bg-secondary/50 border-border text-white"
+                className="bg-secondary/50 border-border text-black"
               />
               <p className="text-xs text-muted-foreground mt-1">
                 한 번에 승인할 수 있는 최대 페이백 금액을 설정합니다.
@@ -147,7 +147,7 @@ export default function AdminSettingsPage() {
                 onChange={(e) => setSettings(prev => ({ ...prev, autoApprove: e.target.checked }))}
                 className="rounded border-border bg-secondary"
               />
-              <Label htmlFor="autoApprove" className="text-white">자동 승인 활성화</Label>
+              <Label htmlFor="autoApprove" className="text-black">자동 승인 활성화</Label>
             </div>
             <p className="text-xs text-muted-foreground">
               자동 승인이 활성화되면 특정 조건의 미션은 자동으로 승인됩니다.
@@ -158,7 +158,7 @@ export default function AdminSettingsPage() {
         {/* Notification Settings */}
         <Card className="gradient-card border-border">
           <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
+            <CardTitle className="text-black flex items-center gap-2">
               <Shield className="h-5 w-5" />
               알림 설정
             </CardTitle>
@@ -173,7 +173,7 @@ export default function AdminSettingsPage() {
                   onChange={() => handleNotificationChange('email')}
                   className="rounded border-border bg-secondary"
                 />
-                <Label htmlFor="emailNotif" className="text-white">이메일 알림</Label>
+                <Label htmlFor="emailNotif" className="text-black">이메일 알림</Label>
               </div>
               <div className="flex items-center space-x-2">
                 <input
@@ -183,7 +183,7 @@ export default function AdminSettingsPage() {
                   onChange={() => handleNotificationChange('sms')}
                   className="rounded border-border bg-secondary"
                 />
-                <Label htmlFor="smsNotif" className="text-white">SMS 알림</Label>
+                <Label htmlFor="smsNotif" className="text-black">SMS 알림</Label>
               </div>
               <div className="flex items-center space-x-2">
                 <input
@@ -193,7 +193,7 @@ export default function AdminSettingsPage() {
                   onChange={() => handleNotificationChange('push')}
                   className="rounded border-border bg-secondary"
                 />
-                <Label htmlFor="pushNotif" className="text-white">푸시 알림</Label>
+                <Label htmlFor="pushNotif" className="text-black">푸시 알림</Label>
               </div>
             </div>
             <p className="text-xs text-muted-foreground">
@@ -205,21 +205,21 @@ export default function AdminSettingsPage() {
         {/* System Info */}
         <Card className="gradient-card border-border">
           <CardHeader>
-            <CardTitle className="text-white">시스템 정보</CardTitle>
+            <CardTitle className="text-black">시스템 정보</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">시스템 버전</span>
-                <span className="text-white">v1.0.0</span>
+                <span className="text-black">v1.0.0</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">마지막 업데이트</span>
-                <span className="text-white">2025-01-15</span>
+                <span className="text-black">2025-01-15</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">데이터베이스</span>
-                <span className="text-white">Supabase</span>
+                <span className="text-black">Supabase</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">서버 상태</span>

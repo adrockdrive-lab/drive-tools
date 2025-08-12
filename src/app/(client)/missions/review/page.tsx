@@ -5,8 +5,8 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { useAppStore } from '@/lib/store'
 import { missionService } from '@/lib/services/missions'
+import { useAppStore } from '@/lib/store'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
@@ -37,7 +37,7 @@ export default function ReviewMissionPage() {
     try {
       setSubmitting(true)
       const result = await missionService.startMissionParticipation(user.id, reviewMission.id)
-      
+
       if (result.success) {
         toast.success('리뷰 미션이 시작되었습니다!')
         await loadUserMissions()
@@ -67,7 +67,7 @@ export default function ReviewMissionPage() {
 
     try {
       setSubmitting(true)
-      
+
       const proofData = {
         type: 'review',
         reviewText,
@@ -76,11 +76,11 @@ export default function ReviewMissionPage() {
       }
 
       const result = await missionService.completeMissionParticipation(
-        user.id, 
-        reviewMission.id, 
+        user.id,
+        reviewMission.id,
         proofData
       )
-      
+
       if (result.success) {
         toast.success('리뷰 미션이 완료되었습니다!')
         await loadUserMissions()
@@ -129,7 +129,7 @@ export default function ReviewMissionPage() {
             ← 대시보드로
           </Button>
           <div>
-            <h1 className="text-2xl font-bold text-white">리뷰 미션</h1>
+            <h1 className="text-2xl font-bold text-black">리뷰 미션</h1>
             <p className="text-muted-foreground">드라이빙존에 대한 리뷰를 작성하고 보상을 받아보세요</p>
           </div>
         </div>
@@ -141,7 +141,7 @@ export default function ReviewMissionPage() {
                 <div className="flex items-center space-x-3">
                   <span className="text-3xl">⭐</span>
                   <div>
-                    <CardTitle className="text-white text-xl">
+                    <CardTitle className="text-black text-xl">
                       {reviewMission.title}
                     </CardTitle>
                     <p className="text-muted-foreground text-sm">
@@ -167,7 +167,7 @@ export default function ReviewMissionPage() {
 
             <CardContent className="space-y-6">
               <div>
-                <h3 className="text-white font-semibold mb-2">미션 설명</h3>
+                <h3 className="text-black font-semibold mb-2">미션 설명</h3>
                 <p className="text-muted-foreground">
                   {reviewMission.description}
                 </p>
@@ -176,7 +176,7 @@ export default function ReviewMissionPage() {
               <div className="bg-secondary/50 rounded-lg p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="text-white font-bold text-lg">
+                    <div className="text-black font-bold text-lg">
                       {reviewMission.rewardAmount.toLocaleString()}원
                     </div>
                     <div className="text-muted-foreground text-sm">
@@ -209,14 +209,14 @@ export default function ReviewMissionPage() {
               {userParticipation?.status === 'in_progress' && (
                 <div className="space-y-4">
                   <div>
-                    <Label htmlFor="rating" className="text-white">
+                    <Label htmlFor="rating" className="text-black">
                       별점 평가
                     </Label>
                     <select
                       id="rating"
                       value={rating}
                       onChange={(e) => setRating(e.target.value)}
-                      className="w-full bg-secondary/50 border border-border text-white rounded-md px-3 py-2 mt-1"
+                      className="w-full bg-secondary/50 border border-border text-black rounded-md px-3 py-2 mt-1"
                     >
                       <option value="5">⭐⭐⭐⭐⭐ (5점)</option>
                       <option value="4">⭐⭐⭐⭐ (4점)</option>
@@ -227,7 +227,7 @@ export default function ReviewMissionPage() {
                   </div>
 
                   <div>
-                    <Label htmlFor="reviewText" className="text-white">
+                    <Label htmlFor="reviewText" className="text-black">
                       리뷰 내용
                     </Label>
                     <Textarea
@@ -235,7 +235,7 @@ export default function ReviewMissionPage() {
                       placeholder="드라이빙존에 대한 솔직한 리뷰를 작성해주세요..."
                       value={reviewText}
                       onChange={(e) => setReviewText(e.target.value)}
-                      className="bg-secondary/50 border-border text-white mt-1 min-h-[120px]"
+                      className="bg-secondary/50 border-border text-black mt-1 min-h-[120px]"
                     />
                     <p className="text-muted-foreground text-xs mt-1">
                       최소 10자 이상 작성해주세요. ({reviewText.length}/10)
@@ -255,7 +255,7 @@ export default function ReviewMissionPage() {
               {userParticipation?.status === 'completed' && (
                 <div className="text-center py-4">
                   <div className="text-4xl mb-2">✅</div>
-                  <h3 className="text-white font-semibold mb-1">미션 완료!</h3>
+                  <h3 className="text-black font-semibold mb-1">미션 완료!</h3>
                   <p className="text-muted-foreground">
                     축하합니다! 리뷰 미션을 성공적으로 완료했습니다.
                   </p>
@@ -263,7 +263,7 @@ export default function ReviewMissionPage() {
                     <Button
                       onClick={() => router.push('/dashboard')}
                       variant="outline"
-                      className="border-border text-white hover:bg-secondary"
+                      className="border-border text-black hover:bg-secondary"
                     >
                       대시보드로 돌아가기
                     </Button>
@@ -276,7 +276,7 @@ export default function ReviewMissionPage() {
           <Card className="gradient-card border-border">
             <CardContent className="text-center py-8">
               <div className="text-4xl mb-4">⭐</div>
-              <h3 className="text-lg font-semibold text-white mb-2">
+              <h3 className="text-lg font-semibold text-black mb-2">
                 진행 가능한 리뷰 미션이 없습니다
               </h3>
               <p className="text-muted-foreground">

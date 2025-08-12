@@ -61,7 +61,7 @@ export function Select({
         className={cn(
           'w-full flex items-center justify-between px-3 py-2 text-left',
           'bg-secondary/50 border border-border rounded-md',
-          'text-white placeholder:text-muted-foreground',
+          'text-black placeholder:text-muted-foreground',
           'focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary',
           'transition-all duration-200',
           'hover:border-primary/50',
@@ -74,7 +74,7 @@ export function Select({
       >
         <span className={cn(
           'truncate',
-          selectedOption ? 'text-white' : 'text-muted-foreground'
+          selectedOption ? 'text-black' : 'text-muted-foreground'
         )}>
           {selectedOption ? (
             <div>
@@ -119,7 +119,7 @@ export function Select({
               >
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
-                    <div className="font-medium text-white">{option.label}</div>
+                    <div className="font-medium text-black">{option.label}</div>
                     {option.description && (
                       <div className="text-xs text-muted-foreground">{option.description}</div>
                     )}

@@ -83,11 +83,11 @@ export default function AttendanceMissionPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background p-4">
+      <div className="min-h-screen bg-gray-50 p-4">
         <div className="max-w-2xl mx-auto space-y-6">
           <div className="animate-pulse">
-            <div className="h-8 bg-secondary rounded mb-4"></div>
-            <div className="h-64 bg-secondary rounded"></div>
+            <div className="h-8 bg-gray-200 rounded mb-4"></div>
+            <div className="h-64 bg-gray-200 rounded"></div>
           </div>
         </div>
       </div>
@@ -99,7 +99,7 @@ export default function AttendanceMissionPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-4">
+    <div className="min-h-screen bg-gray-50 p-4">
       <div className="max-w-2xl mx-auto space-y-6">
         {/* 헤더 */}
         <div className="flex items-center space-x-3">
@@ -112,22 +112,22 @@ export default function AttendanceMissionPage() {
             ← 대시보드로
           </Button>
           <div>
-            <h1 className="text-2xl font-bold text-white">출석 미션</h1>
-            <p className="text-muted-foreground">매일 출석하고 보상을 받아보세요</p>
+                      <h1 className="text-2xl font-bold text-gray-900">출석 미션</h1>
+          <p className="text-gray-600">매일 출석하고 보상을 받아보세요</p>
           </div>
         </div>
 
         {attendanceMission ? (
-          <Card className="gradient-card border-border">
+          <Card className="bg-white border-gray-200 shadow-md">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   <span className="text-3xl">📅</span>
                   <div>
-                    <CardTitle className="text-white text-xl">
+                    <CardTitle className="text-gray-900 text-xl">
                       {attendanceMission.title}
                     </CardTitle>
-                    <p className="text-muted-foreground text-sm">
+                    <p className="text-gray-600 text-sm">
                       출석 미션
                     </p>
                   </div>
@@ -150,19 +150,19 @@ export default function AttendanceMissionPage() {
 
             <CardContent className="space-y-6">
               <div>
-                <h3 className="text-white font-semibold mb-2">미션 설명</h3>
-                <p className="text-muted-foreground">
+                <h3 className="text-gray-900 font-semibold mb-2">미션 설명</h3>
+                <p className="text-gray-600">
                   {attendanceMission.description}
                 </p>
               </div>
 
-              <div className="bg-secondary/50 rounded-lg p-4">
+              <div className="bg-blue-50 rounded-lg p-4">
                 <div className="flex items-center justify-between">
                   <div className='flex flex-col gap-2'>
-                    <div className="text-white font-bold text-lg">
+                    <div className="text-blue-600 font-bold text-lg">
                       {attendanceMission.rewardAmount.toLocaleString()}원
                     </div>
-                    <div className="text-muted-foreground text-sm">
+                    <div className="text-gray-600 text-sm">
                       보상 금액
                     </div>
                   </div>
@@ -170,9 +170,9 @@ export default function AttendanceMissionPage() {
                 </div>
               </div>
 
-              <div className="bg-blue-500/20 p-4 rounded-xl">
-                <h4 className="font-semibold text-blue-400 mb-2">📋 참여 방법</h4>
-                <ul className="text-muted-foreground text-sm space-y-1">
+              <div className="bg-blue-50 p-4 rounded-xl">
+                <h4 className="font-semibold text-blue-700 mb-2">📋 참여 방법</h4>
+                <ul className="text-gray-600 text-sm space-y-1">
                   <li>• 매일 출석 체크</li>
                   <li>• 연속 출석 시 추가 보상</li>
                   <li>• 출석 버튼을 눌러 완료</li>
@@ -193,8 +193,8 @@ export default function AttendanceMissionPage() {
                 <div className="space-y-4">
                   <div className="text-center py-4">
                     <div className="text-4xl mb-2">📅</div>
-                    <h3 className="text-white font-semibold mb-1">오늘 출석하기</h3>
-                    <p className="text-muted-foreground">
+                    <h3 className="text-gray-900 font-semibold mb-1">오늘 출석하기</h3>
+                    <p className="text-gray-600">
                       출석 버튼을 눌러 오늘의 출석을 완료하세요.
                     </p>
                   </div>
@@ -212,15 +212,15 @@ export default function AttendanceMissionPage() {
               {userParticipation?.status === 'completed' && (
                 <div className="text-center py-4">
                   <div className="text-4xl mb-2">✅</div>
-                  <h3 className="text-white font-semibold mb-1">출석 완료!</h3>
-                  <p className="text-muted-foreground">
+                  <h3 className="text-gray-900 font-semibold mb-1">출석 완료!</h3>
+                  <p className="text-gray-600">
                     축하합니다! 오늘의 출석을 완료했습니다.
                   </p>
                   <div className="mt-4">
                     <Button
                       onClick={() => router.push('/dashboard')}
                       variant="outline"
-                      className="border-border text-white hover:bg-secondary"
+                      className="border-border text-black hover:bg-secondary"
                     >
                       대시보드로 돌아가기
                     </Button>
@@ -233,7 +233,7 @@ export default function AttendanceMissionPage() {
           <Card className="gradient-card border-border">
             <CardContent className="text-center py-8">
               <div className="text-4xl mb-4">📅</div>
-              <h3 className="text-lg font-semibold text-white mb-2">
+              <h3 className="text-lg font-semibold text-black mb-2">
                 진행 가능한 출석 미션이 없습니다
               </h3>
               <p className="text-muted-foreground">

@@ -3,7 +3,7 @@
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
@@ -14,7 +14,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Textarea } from '@/components/ui/textarea'
 import { adminService } from '@/lib/services/admin'
 import type { UserMissionData } from '@/types'
 import { useRouter } from 'next/navigation'
@@ -33,11 +32,9 @@ export default function AdminDashboardPage() {
   } | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
-  const [selectedMission, setSelectedMission] = useState<UserMissionData | null>(null)
   const [rejectionReason, setRejectionReason] = useState('')
 
-  // 임시로 storeId를 70으로 설정 (실제로는 로그인한 어드민의 storeId 사용)
-  const storeId = 70
+  // storeId 제거 - 모든 데이터 조회
 
   useEffect(() => {
     loadData()
@@ -47,8 +44,8 @@ export default function AdminDashboardPage() {
     setIsLoading(true)
     try {
       const [missionsResult, statsResult] = await Promise.all([
-        adminService.getUserMissions(storeId),
-        adminService.getStoreStats(storeId)
+        adminService.getUserMissions(),
+        adminService.getStoreStats()
       ])
 
       if (missionsResult.success) {
@@ -90,7 +87,6 @@ export default function AdminDashboardPage() {
       if (result.success) {
         toast.success('페이백이 거부되었습니다.')
         setRejectionReason('')
-        setSelectedMission(null)
         loadData()
       } else {
         toast.error(result.error || '페이백 거부에 실패했습니다.')
@@ -159,7 +155,7 @@ export default function AdminDashboardPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-white">대시보드</h1>
+        <h1 className="text-3xl font-bold text-black">대시보드</h1>
         <p className="text-muted-foreground">지점별 사용자 미션 현황</p>
       </div>
 
@@ -171,7 +167,7 @@ export default function AdminDashboardPage() {
                 <CardTitle className="text-sm font-medium text-muted-foreground">총 사용자</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-white">{stats.totalUsers.toLocaleString()}</div>
+                <div className="text-2xl font-bold text-black">{stats.totalUsers.toLocaleString()}</div>
               </CardContent>
             </Card>
             <Card className="gradient-card border-border">
@@ -179,7 +175,7 @@ export default function AdminDashboardPage() {
                 <CardTitle className="text-sm font-medium text-muted-foreground">총 미션</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-white">{stats.totalMissions.toLocaleString()}</div>
+                <div className="text-2xl font-bold text-black">{stats.totalMissions.toLocaleString()}</div>
               </CardContent>
             </Card>
             <Card className="gradient-card border-border">
@@ -187,7 +183,7 @@ export default function AdminDashboardPage() {
                 <CardTitle className="text-sm font-medium text-muted-foreground">완료율</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-white">{stats.completionRate}%</div>
+                <div className="text-2xl font-bold text-black">{stats.completionRate}%</div>
               </CardContent>
             </Card>
             <Card className="gradient-card border-border">
@@ -195,7 +191,7 @@ export default function AdminDashboardPage() {
                 <CardTitle className="text-sm font-medium text-muted-foreground">총 지급액</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-white">{stats.totalPayback.toLocaleString()}원</div>
+                <div className="text-2xl font-bold text-black">{stats.totalPayback.toLocaleString()}원</div>
               </CardContent>
             </Card>
           </div>
@@ -206,13 +202,13 @@ export default function AdminDashboardPage() {
           <CardContent className="pt-6">
             <div className="flex gap-4">
               <div className="flex-1">
-                <Label htmlFor="search" className="text-white">검색</Label>
+                <Label htmlFor="search" className="text-black">검색</Label>
                 <Input
                   id="search"
                   placeholder="사용자명, 전화번호, 미션명으로 검색..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="bg-secondary/50 border-border text-white"
+                  className="border-border text-black"
                 />
               </div>
               <div className="flex items-end">
@@ -231,41 +227,41 @@ export default function AdminDashboardPage() {
         {/* Table */}
         <Card className="gradient-card border-border">
           <CardHeader>
-            <CardTitle className="text-white">사용자 미션 현황</CardTitle>
+            <CardTitle className="text-black">사용자 미션 현황</CardTitle>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="text-white">사용자</TableHead>
-                  <TableHead className="text-white">미션</TableHead>
-                  <TableHead className="text-white">상태</TableHead>
-                  <TableHead className="text-white">시작일</TableHead>
-                  <TableHead className="text-white">완료일</TableHead>
-                  <TableHead className="text-white">보상</TableHead>
-                  <TableHead className="text-white">페이백</TableHead>
-                  <TableHead className="text-white">액션</TableHead>
+                  <TableHead className="text-black">사용자</TableHead>
+                  <TableHead className="text-black">미션</TableHead>
+                  <TableHead className="text-black">상태</TableHead>
+                  <TableHead className="text-black">시작일</TableHead>
+                  <TableHead className="text-black">완료일</TableHead>
+                  <TableHead className="text-black">보상</TableHead>
+                  <TableHead className="text-black">페이백</TableHead>
+                  <TableHead className="text-black">액션</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredMissions.map((mission) => (
                   <TableRow key={mission.id}>
-                    <TableCell className="text-white">
+                    <TableCell className="text-black">
                       <div>
                         <div className="font-medium">{mission.userName}</div>
                         <div className="text-sm text-muted-foreground">{mission.userPhone}</div>
                       </div>
                     </TableCell>
-                    <TableCell className="text-white">
+                    <TableCell className="text-black">
                       <div>
                         <div className="font-medium">{mission.missionTitle}</div>
                         <div className="text-sm text-muted-foreground">{mission.missionType}</div>
                       </div>
                     </TableCell>
                     <TableCell>{getStatusBadge(mission.status)}</TableCell>
-                    <TableCell className="text-white">{formatDate(mission.startedAt)}</TableCell>
-                    <TableCell className="text-white">{formatDate(mission.completedAt)}</TableCell>
-                    <TableCell className="text-white">{mission.rewardAmount.toLocaleString()}원</TableCell>
+                    <TableCell className="text-black">{formatDate(mission.startedAt)}</TableCell>
+                    <TableCell className="text-black">{formatDate(mission.completedAt)}</TableCell>
+                    <TableCell className="text-black">{mission.rewardAmount.toLocaleString()}원</TableCell>
                     <TableCell>{getPaybackStatusBadge(mission.paybackStatus)}</TableCell>
                     <TableCell>
                       {mission.status === 'completed' && !mission.paybackStatus && (
@@ -277,52 +273,19 @@ export default function AdminDashboardPage() {
                           >
                             승인
                           </Button>
-                          <Dialog>
-                            <DialogTrigger asChild>
-                              <Button
-                                size="sm"
-                                variant="destructive"
-                                onClick={() => setSelectedMission(mission)}
-                              >
-                                거부
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent className="bg-secondary border-border">
-                              <DialogHeader>
-                                <DialogTitle className="text-white">페이백 거부</DialogTitle>
-                              </DialogHeader>
-                              <div className="space-y-4">
-                                <div>
-                                  <Label htmlFor="reason" className="text-white">거부 사유</Label>
-                                  <Textarea
-                                    id="reason"
-                                    placeholder="거부 사유를 입력하세요..."
-                                    value={rejectionReason}
-                                    onChange={(e) => setRejectionReason(e.target.value)}
-                                    className="bg-secondary/50 border-border text-white"
-                                  />
-                                </div>
-                                <div className="flex justify-end gap-2">
-                                  <Button
-                                    variant="outline"
-                                    onClick={() => {
-                                      setRejectionReason('')
-                                      setSelectedMission(null)
-                                    }}
-                                    className="border-border text-white hover:bg-secondary"
-                                  >
-                                    취소
-                                  </Button>
-                                  <Button
-                                    variant="destructive"
-                                    onClick={() => handleRejectPayback(mission.id)}
-                                  >
-                                    거부
-                                  </Button>
-                                </div>
-                              </div>
-                            </DialogContent>
-                          </Dialog>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => {
+                              const reason = prompt('거부 사유를 입력하세요:')
+                              if (reason) {
+                                setRejectionReason(reason)
+                                handleRejectPayback(mission.id)
+                              }
+                            }}
+                          >
+                            거부
+                          </Button>
                         </div>
                       )}
                     </TableCell>

@@ -1,8 +1,8 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import CountUp from 'react-countup';
 import { useEffect, useState } from 'react';
+import CountUp from 'react-countup';
 
 interface PaybackCounterProps {
   amount: number;
@@ -18,13 +18,13 @@ interface PaybackCounterProps {
 
 const sizeConfig = {
   sm: 'text-sm font-medium',
-  md: 'text-lg font-semibold', 
+  md: 'text-lg font-semibold',
   lg: 'text-2xl font-bold',
   xl: 'text-4xl font-bold'
 };
 
 const colorConfig = {
-  default: 'text-gray-900 dark:text-white',
+  default: 'text-gray-900 dark:text-black',
   success: 'text-green-600 dark:text-green-400',
   warning: 'text-orange-600 dark:text-orange-400',
   premium: 'text-purple-600 dark:text-purple-400'
@@ -90,9 +90,9 @@ export function PaybackCounter({
         className={`${baseClasses} ${glowClasses} ${increaseClasses}`}
         initial={{ scale: 0.5, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        transition={{ 
-          type: "spring", 
-          stiffness: 500, 
+        transition={{
+          type: "spring",
+          stiffness: 500,
           damping: 15,
           bounce: 0.6
         }}
@@ -130,7 +130,7 @@ export function PaybackCounter({
       />
       {showCurrency && currency}
       {suffix}
-      
+
       {/* Sparkle effect when increasing */}
       {isIncreasing && (
         <motion.div

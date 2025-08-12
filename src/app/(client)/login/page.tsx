@@ -114,19 +114,19 @@ export default function LoginPage() {
 
   if (isAuthenticated) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">대시보드로 이동 중...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">대시보드로 이동 중...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       {/* Status Bar */}
-      <div className="h-6 bg-background absolute top-0 left-0 right-0"></div>
+      <div className="h-6 bg-gray-50 absolute top-0 left-0 right-0"></div>
 
       <div className="w-full max-w-md">
         {/* 로고 및 헤더 */}
@@ -138,14 +138,14 @@ export default function LoginPage() {
         >
           <motion.div
             whileHover={{ scale: 1.1, rotate: 5 }}
-            className="inline-block w-16 h-16 bg-gradient-to-br from-primary to-purple-600 rounded-2xl flex items-center justify-center text-white text-3xl mb-4"
+            className="inline-block w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center text-black text-3xl mb-4"
           >
             🚗
           </motion.div>
-          <h1 className="text-2xl font-bold text-white mb-2">
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">
             드라이빙존 로그인
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-gray-600">
             미션을 완료하고 페이백을 받아보세요!
           </p>
         </motion.div>
@@ -158,25 +158,25 @@ export default function LoginPage() {
         >
           <Card className="gradient-card border-border">
             <CardHeader className="text-center pb-4">
-              <CardTitle className="flex items-center justify-center space-x-2 text-white">
+              <CardTitle className="flex items-center justify-center space-x-2 text-gray-900">
                 <UserIcon className="w-5 h-5" />
                 <span>로그인</span>
               </CardTitle>
-              <CardDescription className="text-muted-foreground">
+              <CardDescription className="text-gray-600">
                 등록된 휴대폰 번호로 로그인해주세요
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div>
-                <Label htmlFor="phone" className="flex items-center space-x-2 text-white">
-                  <Phone className="w-4 h-4" />
-                  <span>휴대폰 번호</span>
-                </Label>
+                              <Label htmlFor="phone" className="flex items-center space-x-2 text-gray-900">
+                <Phone className="w-4 h-4" />
+                <span>휴대폰 번호</span>
+              </Label>
                 <Input
                   id="phone"
                   type="tel"
                   placeholder="010-0000-0000"
-                  className="h-12 text-lg bg-secondary/50 border-border text-white mt-2"
+                                      className="h-12 text-lg bg-gray-100 border-gray-300 text-gray-900 mt-2"
                   value={phone}
                   onChange={(e) => {
                     const value = e.target.value.replace(/[^\d]/g, '')
@@ -187,9 +187,9 @@ export default function LoginPage() {
                   maxLength={13}
                   disabled={isLoading || codeSent}
                 />
-                <p className="text-sm text-muted-foreground mt-1">
-                  회원가입 시 등록한 휴대폰 번호를 입력해주세요
-                </p>
+                            <p className="text-sm text-gray-600 mt-1">
+              회원가입 시 등록한 휴대폰 번호를 입력해주세요
+            </p>
               </div>
 
               {!codeSent ? (
@@ -218,14 +218,14 @@ export default function LoginPage() {
                 </motion.div>
               ) : (
                 <div>
-                  <Label htmlFor="code" className="flex items-center space-x-2 text-white">
+                  <Label htmlFor="code" className="flex items-center space-x-2 text-black">
                     <span>인증 코드</span>
                   </Label>
                   <Input
                     id="code"
                     type="text"
                     placeholder="6자리 인증 코드"
-                    className="h-12 text-lg bg-secondary/50 border-border text-white mt-2"
+                    className="h-12 text-lg bg-gray-100 border-gray-300 text-gray-900 mt-2"
                     value={verificationCode}
                     onChange={(e) => setVerificationCode(e.target.value.replace(/[^\d]/g, ''))}
                     onKeyPress={handleKeyPress}
@@ -277,7 +277,7 @@ export default function LoginPage() {
                     <Link href="/register">
                       <Button
                         variant="outline"
-                        className="w-full h-12 border-2 border-border hover:border-primary hover:bg-primary/10 text-white transition-all duration-300"
+                        className="w-full h-12 border-2 border-border hover:border-primary hover:bg-primary/10 text-black transition-all duration-300"
                         disabled={isLoading}
                       >
                         <div className="flex items-center space-x-2">
@@ -294,7 +294,7 @@ export default function LoginPage() {
               <div className="text-center pt-2">
                 <Link
                   href="/"
-                  className="text-sm text-muted-foreground hover:text-white transition-colors"
+                  className="text-sm text-muted-foreground hover:text-black transition-colors"
                 >
                   홈으로 돌아가기
                 </Link>
@@ -312,7 +312,7 @@ export default function LoginPage() {
         >
           <div className="gradient-card rounded-2xl p-4 border border-border">
             <div className="text-center mb-4">
-              <h3 className="text-lg font-semibold text-white mb-2">
+              <h3 className="text-lg font-semibold text-black mb-2">
                 🎯 미션 완료하고 페이백 받기!
               </h3>
             </div>
@@ -322,7 +322,7 @@ export default function LoginPage() {
                   <Target className="w-5 h-5 text-green-400" />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-white">4가지 미션</p>
+                  <p className="text-sm font-semibold text-black">4가지 미션</p>
                   <p className="text-xs text-muted-foreground">다양한 미션</p>
                 </div>
               </div>
@@ -331,7 +331,7 @@ export default function LoginPage() {
                   <Coins className="w-5 h-5 text-blue-400" />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-white">87,000원</p>
+                  <p className="text-sm font-semibold text-black">87,000원</p>
                   <p className="text-xs text-muted-foreground">최대 페이백</p>
                 </div>
               </div>
@@ -340,7 +340,7 @@ export default function LoginPage() {
                   <Trophy className="w-5 h-5 text-purple-400" />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-white">즉시 지급</p>
+                  <p className="text-sm font-semibold text-black">즉시 지급</p>
                   <p className="text-xs text-muted-foreground">빠른 페이백</p>
                 </div>
               </div>

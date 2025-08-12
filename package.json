@@ -11,7 +11,8 @@
     "mcp:test": "node setup-mcp.js test",
     "mcp:setup": "node setup-mcp.js setup",
     "db:create": "node create-tables.js",
-    "db:check": "node setup-mcp.js test"
+    "db:check": "node setup-mcp.js test",
+    "db:test-data": "node create-test-data.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.1",

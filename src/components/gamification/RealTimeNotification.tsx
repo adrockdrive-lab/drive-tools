@@ -1,11 +1,11 @@
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
-import { useState, useEffect } from 'react';
-import { useRealtimeProgress, useSocialFeed } from '@/hooks/useRealtimeProgress';
-import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { useRealtimeProgress, useSocialFeed } from '@/hooks/useRealtimeProgress';
+import { AnimatePresence, motion } from 'framer-motion';
+import { useEffect, useState } from 'react';
 import { PaybackCounter } from './PaybackCounter';
 
 interface NotificationProps {
@@ -48,27 +48,27 @@ export function ToastNotification({
     success: {
       bgColor: 'bg-gradient-to-r from-green-500 to-green-600',
       icon: icon || '🎉',
-      textColor: 'text-white'
+      textColor: 'text-black'
     },
     payback: {
       bgColor: 'bg-gradient-to-r from-orange-500 to-orange-600',
       icon: icon || '💰',
-      textColor: 'text-white'
+      textColor: 'text-black'
     },
     social: {
       bgColor: 'bg-gradient-to-r from-blue-500 to-blue-600',
       icon: icon || '👥',
-      textColor: 'text-white'
+      textColor: 'text-black'
     },
     level_up: {
       bgColor: 'bg-gradient-to-r from-purple-500 to-purple-600',
       icon: icon || '⭐',
-      textColor: 'text-white'
+      textColor: 'text-black'
     },
     achievement: {
       bgColor: 'bg-gradient-to-r from-yellow-500 to-yellow-600',
       icon: icon || '🏆',
-      textColor: 'text-white'
+      textColor: 'text-black'
     }
   };
 
@@ -176,20 +176,20 @@ export function ConnectionStatus() {
       animate={{ opacity: 1, y: 0 }}
       className="fixed top-4 left-4 z-40"
     >
-      <Card 
+      <Card
         className={`cursor-pointer transition-all duration-200 ${
-          isConnected 
-            ? 'border-green-200 bg-green-50 hover:bg-green-100' 
+          isConnected
+            ? 'border-green-200 bg-green-50 hover:bg-green-100'
             : 'border-red-200 bg-red-50 hover:bg-red-100'
         }`}
         onClick={() => setShowDetails(!showDetails)}
       >
         <CardContent className="p-3">
           <div className="flex items-center space-x-2">
-            <div 
+            <div
               className={`w-2 h-2 rounded-full ${
                 isConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'
-              }`} 
+              }`}
             />
             <span className="text-xs font-medium">
               {isConnected ? '실시간 연결됨' : '연결 끊김'}
@@ -200,7 +200,7 @@ export function ConnectionStatus() {
               </span>
             )}
           </div>
-          
+
           <AnimatePresence>
             {showDetails && (
               <motion.div
@@ -282,7 +282,7 @@ export function SocialActivityFeed({ maxItems = 5 }: { maxItems?: number }) {
               <div className="flex items-center space-x-2 flex-1 min-w-0">
                 <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse flex-shrink-0" />
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs font-medium text-gray-900 dark:text-white truncate">
+                  <p className="text-xs font-medium text-gray-900 dark:text-black truncate">
                     {activity.userName}님이 {activity.action}
                   </p>
                   <p className="text-xs text-gray-500 dark:text-gray-400">

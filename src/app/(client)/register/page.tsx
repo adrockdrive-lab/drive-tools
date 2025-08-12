@@ -130,16 +130,16 @@ function RegisterForm() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       {/* Status Bar */}
-      <div className="h-6 bg-background"></div>
+      <div className="h-6 bg-gray-50"></div>
 
       <Card className="w-full max-w-md gradient-card border-border">
         <CardHeader className="text-center">
           <div className="mb-4">
             <div className="text-4xl mb-2">🚗</div>
-            <CardTitle className="text-2xl font-bold text-white">회원가입</CardTitle>
-            <p className="text-muted-foreground mt-2">
+            <CardTitle className="text-2xl font-bold text-gray-900">회원가입</CardTitle>
+            <p className="text-gray-600 mt-2">
               {formData.storeId ? `지점: ${getSelectedStoreName()}` : '드라이빙존에 오신 것을 환영합니다!'}
             </p>
           </div>
@@ -159,31 +159,31 @@ function RegisterForm() {
           {step === 1 && (
             <div className="space-y-4">
               <div className='flex flex-col gap-4'>
-                <Label htmlFor="name" className="text-white">이름</Label>
+                <Label htmlFor="name" className="text-gray-900">이름</Label>
                 <Input
                   id="name"
                   type="text"
                   placeholder="홍길동"
                   value={formData.name}
                   onChange={(e) => handleInputChange('name', e.target.value)}
-                  className="bg-secondary/50 border-border text-white"
+                  className="bg-gray-100 border-gray-300 text-gray-900"
                 />
               </div>
 
               <div className='flex flex-col gap-4'>
-                <Label htmlFor="phone" className="text-white">휴대폰 번호</Label>
+                <Label htmlFor="phone" className="text-gray-900">휴대폰 번호</Label>
                 <Input
                   id="phone"
                   type="tel"
                   placeholder="010-0000-0000"
                   value={formData.phone}
                   onChange={(e) => handleInputChange('phone', e.target.value)}
-                  className="bg-secondary/50 border-border text-white"
+                  className="bg-gray-100 border-gray-300 text-gray-900"
                 />
               </div>
 
               <div className='flex flex-col gap-4'>
-                <Label htmlFor="storeId" className="text-white">지점 선택</Label>
+                <Label htmlFor="storeId" className="text-gray-900">지점 선택</Label>
                 <Select
                   options={stores.map((store) => ({
                     value: store.id.toString(),
@@ -194,20 +194,20 @@ function RegisterForm() {
                   onChange={(value) => handleInputChange('storeId', value)}
                   placeholder="지점을 선택해주세요"
                 />
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-xs text-gray-600 mt-1">
                   이용하실 지점을 선택해주세요.
                 </p>
               </div>
 
               <div className='flex flex-col gap-4'>
-                <Label htmlFor="referralCode" className="text-white">추천 코드 (선택사항)</Label>
+                <Label htmlFor="referralCode" className="text-gray-900">추천 코드 (선택사항)</Label>
                 <Input
                   id="referralCode"
                   type="text"
                   placeholder="추천 코드가 있다면 입력해주세요"
                   value={formData.referralCode}
                   onChange={(e) => handleInputChange('referralCode', e.target.value)}
-                  className="bg-secondary/50 border-border text-white"
+                  className="bg-gray-100 border-gray-300 text-gray-900"
                 />
               </div>
 
@@ -225,7 +225,7 @@ function RegisterForm() {
           {step === 2 && (
             <div className="space-y-4">
               <div>
-                <Label htmlFor="verificationCode" className="text-white">인증 코드</Label>
+                <Label htmlFor="verificationCode" className="text-black">인증 코드</Label>
                 <div className="flex space-x-2">
                   <Input
                     id="verificationCode"
@@ -233,13 +233,13 @@ function RegisterForm() {
                     placeholder="6자리 코드"
                     value={formData.verificationCode}
                     onChange={(e) => handleInputChange('verificationCode', e.target.value)}
-                    className="flex-1 bg-secondary/50 border-border text-white"
+                    className="flex-1 bg-secondary/50 border-border text-black"
                   />
                   <Button
                     onClick={sendVerificationCode}
                     disabled={isLoading || countdown > 0}
                     variant="outline"
-                    className="border-border text-white hover:bg-secondary"
+                    className="border-border text-black hover:bg-secondary"
                   >
                     {countdown > 0 ? `${Math.floor(countdown / 60)}:${(countdown % 60).toString().padStart(2, '0')}` : '인증번호'}
                   </Button>
@@ -253,7 +253,7 @@ function RegisterForm() {
                 <Button
                   onClick={() => setStep(1)}
                   variant="outline"
-                  className="flex-1 border-border text-white hover:bg-secondary"
+                  className="flex-1 border-border text-black hover:bg-secondary"
                 >
                   이전
                 </Button>
@@ -273,7 +273,7 @@ function RegisterForm() {
             <div className="space-y-4">
               <div className="text-center">
                 <div className="text-6xl mb-4">✅</div>
-                <h3 className="text-lg font-bold text-white mb-2">인증 완료!</h3>
+                <h3 className="text-lg font-bold text-black mb-2">인증 완료!</h3>
                 <p className="text-muted-foreground">
                   아래 정보로 회원가입을 진행합니다.
                 </p>
@@ -282,20 +282,20 @@ function RegisterForm() {
               <div className="bg-secondary/50 rounded-lg p-4 space-y-2">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">이름:</span>
-                  <span className="text-white">{formData.name}</span>
+                  <span className="text-black">{formData.name}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">휴대폰:</span>
-                  <span className="text-white">{formData.phone}</span>
+                  <span className="text-black">{formData.phone}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">지점:</span>
-                  <span className="text-white">{getSelectedStoreName()}</span>
+                  <span className="text-black">{getSelectedStoreName()}</span>
                 </div>
                 {formData.referralCode && (
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">추천 코드:</span>
-                    <span className="text-white">{formData.referralCode}</span>
+                    <span className="text-black">{formData.referralCode}</span>
                   </div>
                 )}
               </div>
@@ -304,7 +304,7 @@ function RegisterForm() {
                 <Button
                   onClick={() => setStep(2)}
                   variant="outline"
-                  className="flex-1 border-border text-white hover:bg-secondary"
+                  className="flex-1 border-border text-black hover:bg-secondary"
                 >
                   수정
                 </Button>

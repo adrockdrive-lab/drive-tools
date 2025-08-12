@@ -62,7 +62,7 @@ export default function GameDashboard() {
         {/* 환영 메시지 */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-white">
+            <h1 className="text-2xl font-bold text-black">
               안녕하세요, {user?.name}님! 👋
             </h1>
             <p className="text-muted-foreground">
@@ -80,7 +80,7 @@ export default function GameDashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">
+              <div className="text-2xl font-bold text-black">
                 {totalPayback.toLocaleString()}원
               </div>
               <p className="text-xs text-muted-foreground mt-1">
@@ -102,7 +102,7 @@ export default function GameDashboard() {
                   size="lg"
                 />
                 <div>
-                  <div className="text-2xl font-bold text-white">
+                  <div className="text-2xl font-bold text-black">
                     {stats.completionRate}%
                   </div>
                   <p className="text-xs text-muted-foreground">
@@ -120,7 +120,7 @@ export default function GameDashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">
+              <div className="text-2xl font-bold text-black">
                 {referrals.length > 0 ? referrals.length * 50000 : 0}원
               </div>
               <p className="text-xs text-muted-foreground mt-1">
@@ -133,7 +133,7 @@ export default function GameDashboard() {
         {/* 미션 그리드 */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-white">진행 중인 미션</h2>
+            <h2 className="text-xl font-bold text-black">진행 중인 미션</h2>
             <Badge variant="secondary" className="text-xs">
               {userMissions.filter(m => m.status === 'in_progress').length}개 진행 중
             </Badge>
@@ -160,7 +160,7 @@ export default function GameDashboard() {
             <Card className="gradient-card border-border">
               <CardContent className="text-center py-8">
                 <div className="text-4xl mb-4">🎯</div>
-                <h3 className="text-lg font-semibold text-white mb-2">
+                <h3 className="text-lg font-semibold text-black mb-2">
                   진행 가능한 미션이 없습니다
                 </h3>
                 <p className="text-muted-foreground">
@@ -175,7 +175,7 @@ export default function GameDashboard() {
         <Card className="gradient-card border-border">
           <CardContent className="text-center py-8">
             <div className="text-4xl mb-4">🚀</div>
-            <h3 className="text-xl font-bold text-white mb-2">
+            <h3 className="text-xl font-bold text-black mb-2">
               더 많은 보상을 받아보세요!
             </h3>
             <p className="text-muted-foreground mb-4">
@@ -190,7 +190,7 @@ export default function GameDashboard() {
               </Button>
               <Button
                 variant="outline"
-                className="border-border text-white hover:bg-secondary"
+                className="border-border text-black hover:bg-secondary"
                 onClick={() => window.location.href = '/missions/referral'}
               >
                 친구 추천

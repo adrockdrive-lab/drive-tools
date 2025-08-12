@@ -128,7 +128,7 @@ export function MissionCard({ mission }: MissionCardProps) {
           }}
           disabled={isLoading}
           variant="outline"
-          className="w-full border-border text-white hover:bg-secondary"
+          className="w-full border-border text-black hover:bg-secondary"
         >
           {isLoading ? '완료 중...' : '미션 완료'}
         </Button>
@@ -153,7 +153,7 @@ export function MissionCard({ mission }: MissionCardProps) {
           <div className="flex items-center space-x-2">
             <span className="text-2xl">{getMissionIcon(mission.missionType)}</span>
             <div>
-              <CardTitle className="text-white text-base">
+              <CardTitle className="text-black text-base">
                 {mission.title}
               </CardTitle>
               <p className="text-muted-foreground text-xs">
@@ -179,7 +179,7 @@ export function MissionCard({ mission }: MissionCardProps) {
           <div className="flex items-center space-x-2">
             <span className="text-2xl">💰</span>
             <div>
-              <div className="text-white font-bold">
+              <div className="text-black font-bold">
                 {mission.rewardAmount.toLocaleString()}원
               </div>
               <div className="text-muted-foreground text-xs">

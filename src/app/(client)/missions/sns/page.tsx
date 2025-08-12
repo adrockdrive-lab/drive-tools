@@ -4,8 +4,8 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { useAppStore } from '@/lib/store'
 import { missionService } from '@/lib/services/missions'
+import { useAppStore } from '@/lib/store'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
@@ -80,7 +80,7 @@ export default function SnsMissionPage() {
       <div className="max-w-2xl mx-auto">
         <Card className="gradient-card border-border">
           <CardHeader>
-            <CardTitle className="text-2xl font-bold text-white">SNS 미션</CardTitle>
+            <CardTitle className="text-2xl font-bold text-black">SNS 미션</CardTitle>
             <p className="text-muted-foreground">
               드라이빙존을 SNS에 공유하고 리워드를 받아보세요!
             </p>
@@ -90,7 +90,7 @@ export default function SnsMissionPage() {
             {!userParticipation ? (
               <div className="text-center space-y-4">
                 <div className="text-6xl">📱</div>
-                <h3 className="text-lg font-semibold text-white">SNS 공유 미션</h3>
+                <h3 className="text-lg font-semibold text-black">SNS 공유 미션</h3>
                 <p className="text-muted-foreground">
                   드라이빙존에서의 경험을 SNS에 공유하고 10,000원을 받아보세요!
                 </p>
@@ -106,7 +106,7 @@ export default function SnsMissionPage() {
               <div className="space-y-4">
                 <div className="text-center">
                   <div className="text-4xl mb-4">📸</div>
-                  <h3 className="text-lg font-semibold text-white mb-2">SNS 공유하기</h3>
+                  <h3 className="text-lg font-semibold text-black mb-2">SNS 공유하기</h3>
                   <p className="text-muted-foreground">
                     드라이빙존에서의 경험을 SNS에 공유하고 URL을 입력해주세요.
                   </p>
@@ -114,12 +114,12 @@ export default function SnsMissionPage() {
 
                 <div className="space-y-4">
                   <div>
-                    <Label htmlFor="platform" className="text-white">SNS 플랫폼</Label>
+                    <Label htmlFor="platform" className="text-black">SNS 플랫폼</Label>
                     <select
                       id="platform"
                       value={platform}
                       onChange={(e) => setPlatform(e.target.value)}
-                      className="w-full bg-secondary/50 border border-border text-white rounded-md px-3 py-2"
+                      className="w-full bg-secondary/50 border border-border text-black rounded-md px-3 py-2"
                     >
                       <option value="instagram">Instagram</option>
                       <option value="facebook">Facebook</option>
@@ -130,14 +130,14 @@ export default function SnsMissionPage() {
                   </div>
 
                   <div>
-                    <Label htmlFor="snsUrl" className="text-white">SNS URL</Label>
+                    <Label htmlFor="snsUrl" className="text-black">SNS URL</Label>
                     <Input
                       id="snsUrl"
                       type="url"
                       placeholder="https://www.instagram.com/p/..."
                       value={snsUrl}
                       onChange={(e) => setSnsUrl(e.target.value)}
-                      className="bg-secondary/50 border-border text-white"
+                      className="bg-secondary/50 border-border text-black"
                     />
                     <p className="text-xs text-muted-foreground mt-1">
                       공유한 SNS 게시물의 URL을 입력해주세요.
@@ -149,7 +149,7 @@ export default function SnsMissionPage() {
                   <Button
                     onClick={() => router.push('/dashboard')}
                     variant="outline"
-                    className="flex-1 border-border text-white hover:bg-secondary"
+                    className="flex-1 border-border text-black hover:bg-secondary"
                   >
                     대시보드로
                   </Button>
@@ -165,7 +165,7 @@ export default function SnsMissionPage() {
             ) : (
               <div className="text-center space-y-4">
                 <div className="text-6xl">✅</div>
-                <h3 className="text-lg font-semibold text-white">미션 완료!</h3>
+                <h3 className="text-lg font-semibold text-black">미션 완료!</h3>
                 <p className="text-muted-foreground">
                   SNS 미션을 성공적으로 완료했습니다.
                 </p>

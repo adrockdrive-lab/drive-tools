@@ -6,12 +6,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from '@/components/ui/table'
 import { adminService } from '@/lib/services/admin'
 import type { UserMissionData } from '@/types'
@@ -24,8 +24,7 @@ export default function AdminMissionsPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
 
-  // 임시로 storeId를 70으로 설정
-  const storeId = 70
+  // storeId 제거 - 모든 데이터 조회
 
   useEffect(() => {
     loadMissions()
@@ -34,7 +33,7 @@ export default function AdminMissionsPage() {
   const loadMissions = async () => {
     setIsLoading(true)
     try {
-      const result = await adminService.getUserMissions(storeId)
+      const result = await adminService.getUserMissions()
       if (result.success && result.data) {
         setMissions(result.data)
       }
@@ -110,7 +109,7 @@ export default function AdminMissionsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-white">미션 관리</h1>
+        <h1 className="text-3xl font-bold text-black">미션 관리</h1>
         <p className="text-muted-foreground">사용자별 미션 진행 현황</p>
       </div>
 
@@ -121,7 +120,7 @@ export default function AdminMissionsPage() {
             <CardTitle className="text-sm font-medium text-muted-foreground">총 미션</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-white">{missionStats.total}</div>
+            <div className="text-2xl font-bold text-black">{missionStats.total}</div>
           </CardContent>
         </Card>
         <Card className="gradient-card border-border">
@@ -129,7 +128,7 @@ export default function AdminMissionsPage() {
             <CardTitle className="text-sm font-medium text-muted-foreground">대기중</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-white">{missionStats.pending}</div>
+            <div className="text-2xl font-bold text-black">{missionStats.pending}</div>
           </CardContent>
         </Card>
         <Card className="gradient-card border-border">
@@ -137,7 +136,7 @@ export default function AdminMissionsPage() {
             <CardTitle className="text-sm font-medium text-muted-foreground">진행중</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-white">{missionStats.inProgress}</div>
+            <div className="text-2xl font-bold text-black">{missionStats.inProgress}</div>
           </CardContent>
         </Card>
         <Card className="gradient-card border-border">
@@ -145,7 +144,7 @@ export default function AdminMissionsPage() {
             <CardTitle className="text-sm font-medium text-muted-foreground">완료</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-white">{missionStats.completed}</div>
+            <div className="text-2xl font-bold text-black">{missionStats.completed}</div>
           </CardContent>
         </Card>
       </div>
@@ -155,22 +154,22 @@ export default function AdminMissionsPage() {
         <CardContent className="pt-6">
           <div className="flex gap-4">
             <div className="flex-1">
-              <Label htmlFor="search" className="text-white">검색</Label>
+              <Label htmlFor="search" className="text-black">검색</Label>
               <Input
                 id="search"
                 placeholder="사용자명, 전화번호, 미션명으로 검색..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="bg-secondary/50 border-border text-white"
+                className=" border-border text-black"
               />
             </div>
             <div>
-              <Label htmlFor="status" className="text-white">상태 필터</Label>
+              <Label htmlFor="status" className="text-black">상태 필터</Label>
               <select
                 id="status"
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full bg-secondary/50 border border-border text-white rounded-md px-3 py-2"
+                className="w-full  border border-border text-black rounded-md px-3 py-2"
               >
                 <option value="all">전체</option>
                 <option value="pending">대기중</option>
@@ -194,40 +193,40 @@ export default function AdminMissionsPage() {
       {/* Missions Table */}
       <Card className="gradient-card border-border">
         <CardHeader>
-          <CardTitle className="text-white">미션 목록</CardTitle>
+          <CardTitle className="text-black">미션 목록</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="text-white">사용자</TableHead>
-                <TableHead className="text-white">미션</TableHead>
-                <TableHead className="text-white">상태</TableHead>
-                <TableHead className="text-white">시작일</TableHead>
-                <TableHead className="text-white">완료일</TableHead>
-                <TableHead className="text-white">보상</TableHead>
-                <TableHead className="text-white">액션</TableHead>
+                <TableHead className="text-black">사용자</TableHead>
+                <TableHead className="text-black">미션</TableHead>
+                <TableHead className="text-black">상태</TableHead>
+                <TableHead className="text-black">시작일</TableHead>
+                <TableHead className="text-black">완료일</TableHead>
+                <TableHead className="text-black">보상</TableHead>
+                <TableHead className="text-black">액션</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredMissions.map((mission) => (
                 <TableRow key={mission.id}>
-                  <TableCell className="text-white">
+                  <TableCell className="text-black">
                     <div>
                       <div className="font-medium">{mission.userName}</div>
                       <div className="text-sm text-muted-foreground">{mission.userPhone}</div>
                     </div>
                   </TableCell>
-                  <TableCell className="text-white">
+                  <TableCell className="text-black">
                     <div>
                       <div className="font-medium">{mission.missionTitle}</div>
                       <div className="mt-1">{getMissionTypeBadge(mission.missionType)}</div>
                     </div>
                   </TableCell>
                   <TableCell>{getStatusBadge(mission.status)}</TableCell>
-                  <TableCell className="text-white">{formatDate(mission.startedAt)}</TableCell>
-                  <TableCell className="text-white">{formatDate(mission.completedAt)}</TableCell>
-                  <TableCell className="text-white">{mission.rewardAmount.toLocaleString()}원</TableCell>
+                  <TableCell className="text-black">{formatDate(mission.startedAt)}</TableCell>
+                  <TableCell className="text-black">{formatDate(mission.completedAt)}</TableCell>
+                  <TableCell className="text-black">{mission.rewardAmount.toLocaleString()}원</TableCell>
                   <TableCell>
                     <Button size="sm" variant="outline" className="border-border text-white hover:bg-secondary">
                       상세보기
