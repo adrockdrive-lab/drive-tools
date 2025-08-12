@@ -12,7 +12,10 @@
     "mcp:setup": "node setup-mcp.js setup",
     "db:create": "node create-tables.js",
     "db:check": "node setup-mcp.js test",
-    "db:test-data": "node create-test-data.js"
+    "db:test-data": "node create-test-data.js",
+    "db:role-test-data": "node create-role-test-data.js",
+    "db:admin-accounts": "node create-admin-accounts.js",
+    "db:admin-users": "node create-admin-users.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.1",
@@ -22,10 +25,14 @@
     "@radix-ui/react-dropdown-menu": "^2.1.15",
     "@radix-ui/react-label": "^2.1.7",
     "@radix-ui/react-progress": "^1.1.7",
+    "@radix-ui/react-select": "^2.2.5",
     "@radix-ui/react-separator": "^1.1.7",
     "@radix-ui/react-slot": "^1.2.3",
+    "@radix-ui/react-tabs": "^1.1.12",
     "@radix-ui/react-toast": "^1.2.14",
     "@supabase/supabase-js": "^2.53.0",
+    "@types/bcryptjs": "^2.4.6",
+    "bcryptjs": "^3.0.2",
     "canvas-confetti": "^1.9.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

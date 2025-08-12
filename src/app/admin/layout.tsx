@@ -1,6 +1,7 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
+import { adminService } from '@/lib/services/admin'
 import type { Admin } from '@/types'
 import {
   BarChart3,
@@ -9,6 +10,7 @@ import {
   LogOut,
   Menu,
   Settings,
+  Shield,
   Users,
   X
 } from 'lucide-react'
@@ -26,39 +28,66 @@ export default function AdminLayout({
   const [admin, setAdmin] = useState<Admin | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [isClient, setIsClient] = useState(false)
 
   useEffect(() => {
+    setIsClient(true)
     checkAuth()
   }, [])
 
   const checkAuth = async () => {
     try {
-      // 실제로는 세션에서 어드민 정보를 가져와야 함
-      // 임시로 로그인 페이지가 아닌 경우에만 로드
+      // 로그인 페이지가 아닌 경우에만 인증 확인
       if (pathname !== '/admin/login') {
-        // 실제 구현에서는 세션 체크
-        setIsLoading(false)
-      } else {
-        setIsLoading(false)
+        const currentAdmin = adminService.getCurrentAdmin()
+        if (!currentAdmin) {
+          router.push('/admin/login')
+          return
+        }
+        setAdmin(currentAdmin)
       }
+      setIsLoading(false)
     } catch (error) {
+      console.error('Auth check error:', error)
       router.push('/admin/login')
     }
   }
 
-  const handleLogout = () => {
-    // 실제로는 세션 클리어
-    router.push('/admin/login')
-    toast.success('로그아웃되었습니다.')
+  const handleLogout = async () => {
+    try {
+      // 로그아웃 확인
+      if (!confirm('정말 로그아웃하시겠습니까?')) {
+        return
+      }
+
+      await adminService.logout()
+      router.push('/admin/login')
+      toast.success('로그아웃되었습니다.')
+    } catch (error) {
+      console.error('Logout error:', error)
+      toast.error('로그아웃 중 오류가 발생했습니다.')
+    }
   }
 
   const navigation = [
     { name: '대시보드', href: '/admin/dashboard', icon: Home },
     { name: '사용자 관리', href: '/admin/users', icon: Users },
+    { name: '역할 관리', href: '/admin/roles', icon: Shield },
     { name: '미션 관리', href: '/admin/missions', icon: BarChart3 },
     { name: '페이백 관리', href: '/admin/paybacks', icon: CreditCard },
     { name: '설정', href: '/admin/settings', icon: Settings },
   ]
+
+  // 서버 사이드 렌더링 중에는 로딩 상태 표시
+  if (!isClient) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-2xl">로딩 중...</div>
+        </div>
+      </div>
+    )
+  }
 
   if (isLoading) {
     return (
@@ -95,7 +124,7 @@ export default function AdminLayout({
           <div className="flex items-center justify-between p-4 border-b border-gray-200">
             <div className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <span className="text-black font-bold text-sm">A</span>
+                <span className="text-white font-bold text-sm">A</span>
               </div>
               <div>
                 <h1 className="text-lg font-bold text-gray-900">어드민</h1>
@@ -120,7 +149,7 @@ export default function AdminLayout({
                 <Button
                   key={item.name}
                   variant={isActive ? "default" : "ghost"}
-                  className={`w-full justify-start ${isActive ? 'bg-blue-600 text-black' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'}`}
+                  className={`w-full justify-start ${isActive ? 'bg-blue-600 text-white' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'}`}
                   onClick={() => {
                     router.push(item.href)
                     setSidebarOpen(false)

@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase'
+import { UserRole } from '@/types'
 
 export interface RegisterData {
   name: string
@@ -259,4 +260,107 @@ export const authService = {
       referralCode: urlParams.get('ref') || undefined
     }
   }
+}
+
+// 권한 확인 함수
+export async function checkPermission(
+  permissionName: string,
+  resourceId?: string,
+  resourceType?: 'branch' | 'store'
+): Promise<boolean> {
+  try {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return false
+
+    const { data, error } = await supabase.rpc('check_user_permission', {
+      p_user_id: user.id,
+      p_permission_name: permissionName,
+      p_resource_id: resourceId,
+      p_resource_type: resourceType
+    })
+
+    if (error) throw error
+    return data || false
+  } catch (error) {
+    console.error('Permission check error:', error)
+    return false
+  }
+}
+
+// 사용자 역할 조회
+export async function getUserRoles(): Promise<{ success: boolean; data?: UserRole[]; error?: string }> {
+  try {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { success: false, error: '사용자 인증이 필요합니다.' }
+
+    const { data, error } = await supabase.rpc('get_user_roles', {
+      p_user_id: user.id
+    })
+
+    if (error) throw error
+
+    return { success: true, data }
+  } catch (error) {
+    console.error('Get user roles error:', error)
+    return { success: false, error: '사용자 역할을 불러오는데 실패했습니다.' }
+  }
+}
+
+// 사용자 권한 조회
+export async function getUserPermissions(): Promise<{ success: boolean; data?: Permission[]; error?: string }> {
+  try {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { success: false, error: '사용자 인증이 필요합니다.' }
+
+    const { data, error } = await supabase.rpc('get_user_permissions', {
+      p_user_id: user.id
+    })
+
+    if (error) throw error
+
+    return { success: true, data }
+  } catch (error) {
+    console.error('Get user permissions error:', error)
+    return { success: false, error: '사용자 권한을 불러오는데 실패했습니다.' }
+  }
+}
+
+// 슈퍼 관리자 여부 확인
+export async function isSuperAdmin(): Promise<boolean> {
+  const rolesResult = await getUserRoles()
+  if (!rolesResult.success || !rolesResult.data) return false
+
+  return rolesResult.data.some(role => role.role_name === 'super_admin')
+}
+
+// 지점장 여부 확인
+export async function isBranchManager(branchId?: string): Promise<boolean> {
+  const rolesResult = await getUserRoles()
+  if (!rolesResult.success || !rolesResult.data) return false
+
+  const hasBranchManagerRole = rolesResult.data.some(role => role.role_name === 'branch_manager')
+
+  if (!hasBranchManagerRole) return false
+
+  if (branchId) {
+    return await checkPermission('branches.read', branchId, 'branch')
+  }
+
+  return hasBranchManagerRole
+}
+
+// 매장 매니저 여부 확인
+export async function isStoreManager(storeId?: number): Promise<boolean> {
+  const rolesResult = await getUserRoles()
+  if (!rolesResult.success || !rolesResult.data) return false
+
+  const hasStoreManagerRole = rolesResult.data.some(role => role.role_name === 'store_manager')
+
+  if (!hasStoreManagerRole) return false
+
+  if (storeId) {
+    return await checkPermission('stores.read', storeId.toString(), 'store')
+  }
+
+  return hasStoreManagerRole
 }

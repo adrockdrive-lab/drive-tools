@@ -36,8 +36,9 @@ export interface Admin {
   id: string
   name: string
   email: string
-  storeId: number
-  role: 'admin' | 'super_admin'
+  phone: string
+  storeIds: number[]
+  role: 'admin' | 'super_admin' | 'branch_manager' | 'store_manager'
   isActive: boolean
   createdAt: string
   updatedAt: string
@@ -56,6 +57,7 @@ export interface UserMissionData {
   proofData: ProofData | null
   paybackStatus: PaybackStatus | null
   paybackAmount: number | null
+  storeName: string
   createdAt: string
 }
 
@@ -332,4 +334,105 @@ export type DatabaseUserMission = {
   proof_data: Record<string, unknown> | null
   completed_at: string | null
   created_at: string
+}
+
+// 사용자 역할 관련 타입
+export interface UserRole {
+  id: string
+  name: string
+  display_name: string
+  description?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface Permission {
+  id: string
+  name: string
+  display_name: string
+  description?: string
+  resource: string
+  action: string
+  created_at: string
+  updated_at: string
+}
+
+export interface UserRoleAssignment {
+  id: string
+  user_id: string
+  role_id: string
+  assigned_by?: string
+  assigned_at: string
+  expires_at?: string
+  is_active: boolean
+}
+
+export interface UserBranchPermission {
+  id: string
+  user_id: string
+  branch_id: string
+  role_id: string
+  assigned_by?: string
+  assigned_at: string
+  expires_at?: string
+  is_active: boolean
+}
+
+export interface UserStorePermission {
+  id: string
+  user_id: string
+  store_id: number
+  role_id: string
+  assigned_by?: string
+  assigned_at: string
+  expires_at?: string
+  is_active: boolean
+}
+
+export type RoleName = 'super_admin' | 'branch_manager' | 'store_manager' | 'customer'
+
+export interface UserWithRoles extends User {
+  roles: UserRole[]
+  permissions: Permission[]
+}
+
+// 관리자 사용자 관련 타입
+export interface AdminUser {
+  id: string
+  name: string
+  phone: string
+  email?: string
+  password_hash?: string
+  phone_verified: boolean
+  is_active: boolean
+  last_login_at?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface AdminBranchAssignment {
+  id: string
+  admin_user_id: string
+  branch_id: string
+  assigned_by?: string
+  assigned_at: string
+  expires_at?: string
+  is_active: boolean
+}
+
+export interface AdminStoreAssignment {
+  id: string
+  admin_user_id: string
+  store_id: number
+  assigned_by?: string
+  assigned_at: string
+  expires_at?: string
+  is_active: boolean
+}
+
+export interface AdminUserWithAssignments extends AdminUser {
+  branch_assignments: AdminBranchAssignment[]
+  store_assignments: AdminStoreAssignment[]
+  roles: UserRole[]
+  permissions: Permission[]
 }

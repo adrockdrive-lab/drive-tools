@@ -24,20 +24,45 @@ export default function AdminPaybacksPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [selectedStoreId, setSelectedStoreId] = useState<number | null>(null)
+  const [stores, setStores] = useState<any[]>([])
+  const [adminId, setAdminId] = useState<string>('')
   const [rejectionReason, setRejectionReason] = useState('')
 
-  // storeId 제거 - 모든 데이터 조회
-
   useEffect(() => {
-    loadMissions()
+    checkAdminAuth()
   }, [])
 
-  const loadMissions = async () => {
+  const checkAdminAuth = async () => {
+    try {
+      const currentAdmin = adminService.getCurrentAdmin()
+      if (!currentAdmin) {
+        // 로그인 페이지로 리다이렉트
+        return
+      }
+
+      setAdminId(currentAdmin.id)
+
+      // 관리자가 관리할 수 있는 지점 목록 조회
+      const { success, stores: adminStores } = await adminService.getAdminStores(currentAdmin.id)
+      if (success && adminStores) {
+        setStores(adminStores)
+      }
+
+      loadMissions(currentAdmin.id)
+    } catch (error) {
+      console.error('Auth check error:', error)
+    }
+  }
+
+  const loadMissions = async (adminId: string) => {
     setIsLoading(true)
     try {
-      const result = await adminService.getUserMissions()
+      const result = await adminService.getUserMissions(adminId, selectedStoreId || undefined)
       if (result.success && result.data) {
         setMissions(result.data)
+      } else {
+        toast.error(result.error || '페이백 데이터를 불러오는데 실패했습니다.')
       }
     } catch (error) {
       toast.error('페이백 데이터를 불러오는데 실패했습니다.')
@@ -47,11 +72,16 @@ export default function AdminPaybacksPage() {
   }
 
   const handleApprovePayback = async (participationId: string) => {
+    if (!adminId) {
+      toast.error('관리자 정보를 찾을 수 없습니다.')
+      return
+    }
+
     try {
-      const result = await adminService.approvePayback(participationId)
+      const result = await adminService.approvePayback(participationId, adminId)
       if (result.success) {
         toast.success('페이백이 승인되었습니다.')
-        loadMissions()
+        loadMissions(adminId)
       } else {
         toast.error(result.error || '페이백 승인에 실패했습니다.')
       }
@@ -61,17 +91,22 @@ export default function AdminPaybacksPage() {
   }
 
   const handleRejectPayback = async (participationId: string) => {
+    if (!adminId) {
+      toast.error('관리자 정보를 찾을 수 없습니다.')
+      return
+    }
+
     if (!rejectionReason.trim()) {
       toast.error('거부 사유를 입력해주세요.')
       return
     }
 
     try {
-      const result = await adminService.rejectPayback(participationId, rejectionReason)
+      const result = await adminService.rejectPayback(participationId, rejectionReason, adminId)
       if (result.success) {
         toast.success('페이백이 거부되었습니다.')
         setRejectionReason('')
-        loadMissions()
+        loadMissions(adminId)
       } else {
         toast.error(result.error || '페이백 거부에 실패했습니다.')
       }
@@ -84,7 +119,8 @@ export default function AdminPaybacksPage() {
     const matchesSearch =
       mission.userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       mission.userPhone.includes(searchTerm) ||
-      mission.missionTitle.toLowerCase().includes(searchTerm.toLowerCase())
+      mission.missionTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      mission.storeName.toLowerCase().includes(searchTerm.toLowerCase())
 
     const matchesStatus = statusFilter === 'all' || mission.paybackStatus === statusFilter
 
@@ -193,7 +229,7 @@ export default function AdminPaybacksPage() {
               <Label htmlFor="search" className="text-black">검색</Label>
               <Input
                 id="search"
-                placeholder="사용자명, 전화번호, 미션명으로 검색..."
+                placeholder="사용자명, 전화번호, 미션명, 지점명으로 검색..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className=" border-border text-black"
@@ -213,9 +249,31 @@ export default function AdminPaybacksPage() {
                 <option value="rejected">거부됨</option>
               </select>
             </div>
+            <div>
+              <Label htmlFor="store" className="text-black">지점 필터</Label>
+              <select
+                id="store"
+                value={selectedStoreId || ''}
+                onChange={(e) => {
+                  const storeId = e.target.value ? parseInt(e.target.value) : null
+                  setSelectedStoreId(storeId)
+                  if (adminId) {
+                    loadMissions(adminId)
+                  }
+                }}
+                className="w-full border border-border text-black rounded-md px-3 py-2"
+              >
+                <option value="">전체 지점</option>
+                {stores.map((store) => (
+                  <option key={store.id} value={store.id}>
+                    {store.name}
+                  </option>
+                ))}
+              </select>
+            </div>
             <div className="flex items-end">
               <Button
-                onClick={loadMissions}
+                onClick={() => adminId && loadMissions(adminId)}
                 variant="outline"
                 className="border-border text-white hover:bg-secondary"
               >
@@ -236,6 +294,7 @@ export default function AdminPaybacksPage() {
             <TableHeader>
               <TableRow>
                 <TableHead className="text-black">사용자</TableHead>
+                <TableHead className="text-black">지점</TableHead>
                 <TableHead className="text-black">미션</TableHead>
                 <TableHead className="text-black">완료일</TableHead>
                 <TableHead className="text-black">보상</TableHead>
@@ -254,6 +313,7 @@ export default function AdminPaybacksPage() {
                       <div className="text-sm text-muted-foreground">{mission.userPhone}</div>
                     </div>
                   </TableCell>
+                  <TableCell className="text-black">{mission.storeName}</TableCell>
                   <TableCell className="text-black">
                     <div>
                       <div className="font-medium">{mission.missionTitle}</div>

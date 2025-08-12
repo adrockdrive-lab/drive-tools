@@ -5,8 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { adminService } from '@/lib/services/admin'
+import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
 export default function AdminLoginPage() {
@@ -16,6 +17,16 @@ export default function AdminLoginPage() {
     password: ''
   })
   const [isLoading, setIsLoading] = useState(false)
+  const [isClient, setIsClient] = useState(false)
+
+  useEffect(() => {
+    setIsClient(true)
+    // 이미 로그인된 경우 대시보드로 리다이렉트
+    const currentAdmin = adminService.getCurrentAdmin()
+    if (currentAdmin) {
+      router.push('/admin/dashboard')
+    }
+  }, [router])
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
@@ -44,6 +55,17 @@ export default function AdminLoginPage() {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  // 서버 사이드 렌더링 중에는 로딩 상태 표시
+  if (!isClient) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-2xl">로딩 중...</div>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -93,6 +115,53 @@ export default function AdminLoginPage() {
               className="w-full bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90"
             >
               {isLoading ? '로그인 중...' : '로그인'}
+            </Button>
+
+            {/* 임시 테스트 버튼 */}
+            <Button
+              type="button"
+              onClick={async () => {
+                console.log('테스트 로그인 시도')
+                const result = await adminService.login('admin@drivingzone.com', 'admin123!')
+                console.log('테스트 로그인 결과:', result)
+                if (result.success) {
+                  toast.success('테스트 로그인 성공!')
+                  router.push('/admin/dashboard')
+                } else {
+                  toast.error(result.error || '테스트 로그인 실패')
+                }
+              }}
+              className="w-full mt-2 bg-gray-500 hover:bg-gray-600"
+            >
+              테스트 로그인
+            </Button>
+
+            {/* 데이터베이스 연결 테스트 버튼 */}
+            <Button
+              type="button"
+              onClick={async () => {
+                console.log('데이터베이스 연결 테스트')
+                try {
+                  const { data, error } = await supabase
+                    .from('admin_users')
+                    .select('count')
+                    .eq('email', 'admin@drivingzone.com')
+                    .single()
+
+                  console.log('DB 연결 테스트 결과:', { data, error })
+                  if (error) {
+                    toast.error('DB 연결 실패: ' + error.message)
+                  } else {
+                    toast.success('DB 연결 성공!')
+                  }
+                } catch (err) {
+                  console.error('DB 연결 테스트 오류:', err)
+                  toast.error('DB 연결 테스트 오류')
+                }
+              }}
+              className="w-full mt-2 bg-blue-500 hover:bg-blue-600"
+            >
+              DB 연결 테스트
             </Button>
           </form>
         </CardContent>
