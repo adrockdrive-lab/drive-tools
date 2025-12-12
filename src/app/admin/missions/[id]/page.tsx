@@ -37,29 +37,40 @@ interface Participant {
   status: string
   startedAt: string
   completedAt: string | null
-  proofData: any
+  proofData: Record<string, unknown>
   paybackStatus: string | null
   paybackAmount: number | null
 }
 
-export default function MissionDetailPage({ params }: { params: { id: string } }) {
+export default function MissionDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
   const [mission, setMission] = useState<MissionDetail | null>(null)
   const [participants, setParticipants] = useState<Participant[]>([])
+  const [paybacks, setPaybacks] = useState<Array<{
+    id: string
+    userId: string
+    amount: number
+    status: string
+    createdAt: string
+  }>>([])
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    loadMissionData()
-  }, [params.id])
+    const loadData = async () => {
+      const resolvedParams = await params
+      await loadMissionData(resolvedParams.id)
+    }
+    loadData()
+  }, [params])
 
-  const loadMissionData = async () => {
+  const loadMissionData = async (missionId: string) => {
     setIsLoading(true)
     try {
       // 미션 기본 정보 조회
       const { data: missionData, error: missionError } = await supabase
-        .from('missions')
+        .from('mission_definitions')
         .select('*')
-        .eq('id', params.id)
+        .eq('id', missionId)
         .single()
 
       if (missionError) throw missionError
@@ -80,7 +91,7 @@ export default function MissionDetailPage({ params }: { params: { id: string } }
             phone
           )
         `)
-        .eq('mission_id', params.id)
+        .eq('mission_definition_id', missionId)
         .order('created_at', { ascending: false })
 
       if (participantsError) throw participantsError
@@ -89,7 +100,7 @@ export default function MissionDetailPage({ params }: { params: { id: string } }
       const { data: paybacksData, error: paybacksError } = await supabase
         .from('paybacks')
         .select('*')
-        .eq('mission_id', params.id)
+        .eq('mission_definition_id', missionId)
         .order('created_at', { ascending: false })
 
       if (paybacksError) throw paybacksError
@@ -97,9 +108,9 @@ export default function MissionDetailPage({ params }: { params: { id: string } }
       // 통계 계산
       const totalParticipants = participantsData.length
       const completedParticipants = participantsData.filter(p => p.status === 'completed').length
-      const totalPayback = participantsData
-        .filter(p => p.paybacks?.[0]?.status === 'paid')
-        .reduce((sum, p) => sum + (p.paybacks?.[0]?.amount || 0), 0)
+      const totalPayback = paybacksData
+        .filter(p => p.status === 'paid')
+        .reduce((sum, p) => sum + p.amount, 0)
 
       setMission({
         id: missionData.id,
@@ -114,16 +125,16 @@ export default function MissionDetailPage({ params }: { params: { id: string } }
         totalPayback
       })
 
-      setParticipants(participantsData.map(p => {
+      setParticipants(participantsData.map((p: any) => {
         // 해당 참여자에 대한 페이백 찾기
-        const payback = paybacksData?.find(pb =>
-          pb.user_id === p.user_id && pb.mission_id === params.id
+        const payback = paybacksData?.find((pb: any) =>
+          pb.user_id === p.user_id && pb.mission_definition_id === missionId
         )
 
         return {
           id: p.id,
-          userName: p.users.name,
-          userPhone: p.users.phone,
+          userName: p.users[0]?.name || 'Unknown',
+          userPhone: p.users[0]?.phone || 'Unknown',
           status: p.status,
           startedAt: p.started_at || p.created_at,
           completedAt: p.completed_at,
@@ -132,6 +143,14 @@ export default function MissionDetailPage({ params }: { params: { id: string } }
           paybackAmount: payback?.amount || null
         }
       }))
+
+      setPaybacks(paybacksData?.map((p: any) => ({
+        id: p.id,
+        userId: p.user_id,
+        amount: p.amount,
+        status: p.status,
+        createdAt: p.created_at
+      })) || [])
 
     } catch (error) {
       console.error('Load mission data error:', error)
@@ -143,10 +162,15 @@ export default function MissionDetailPage({ params }: { params: { id: string } }
 
   const handleApprovePayback = async (participationId: string) => {
     try {
-      const result = await adminService.approvePayback(participationId)
+      const resolvedParams = await params
+      const result = await adminService.approvePayback(participationId, resolvedParams.id)
       if (result.success) {
         toast.success('페이백이 승인되었습니다.')
-        loadMissionData()
+        const loadData = async () => {
+          const resolvedParams = await params
+          await loadMissionData(resolvedParams.id)
+        }
+        loadData()
       } else {
         toast.error(result.error || '페이백 승인에 실패했습니다.')
       }
@@ -160,10 +184,15 @@ export default function MissionDetailPage({ params }: { params: { id: string } }
     if (!reason) return
 
     try {
-      const result = await adminService.rejectPayback(participationId, reason)
+      const resolvedParams = await params
+      const result = await adminService.rejectPayback(participationId, reason, resolvedParams.id)
       if (result.success) {
         toast.success('페이백이 거부되었습니다.')
-        loadMissionData()
+        const loadData = async () => {
+          const resolvedParams = await params
+          await loadMissionData(resolvedParams.id)
+        }
+        loadData()
       } else {
         toast.error(result.error || '페이백 거부에 실패했습니다.')
       }

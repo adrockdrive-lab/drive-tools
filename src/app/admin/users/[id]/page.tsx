@@ -4,12 +4,12 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
 } from '@/components/ui/table'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { supabase } from '@/lib/supabase'
@@ -46,7 +46,7 @@ interface UserPayback {
   createdAt: string
 }
 
-export default function UserDetailPage({ params }: { params: { id: string } }) {
+export default function UserDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
   const [user, setUser] = useState<UserDetail | null>(null)
   const [missions, setMissions] = useState<UserMission[]>([])
@@ -54,17 +54,21 @@ export default function UserDetailPage({ params }: { params: { id: string } }) {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    loadUserData()
-  }, [params.id])
+    const loadData = async () => {
+      const resolvedParams = await params
+      await loadUserData(resolvedParams.id)
+    }
+    loadData()
+  }, [params])
 
-  const loadUserData = async () => {
+  const loadUserData = async (userId: string) => {
     setIsLoading(true)
     try {
       // 사용자 기본 정보 조회
       const { data: userData, error: userError } = await supabase
         .from('users')
         .select('*')
-        .eq('id', params.id)
+        .eq('id', userId)
         .single()
 
       if (userError) throw userError
@@ -79,14 +83,14 @@ export default function UserDetailPage({ params }: { params: { id: string } }) {
           proof_data,
           started_at,
           created_at,
-          mission_id,
-          missions!inner(
+          mission_definition_id,
+          mission_definitions!inner(
             title,
             mission_type,
             reward_amount
           )
         `)
-        .eq('user_id', params.id)
+        .eq('user_id', userId)
         .order('created_at', { ascending: false })
 
       if (missionsError) throw missionsError
@@ -100,12 +104,12 @@ export default function UserDetailPage({ params }: { params: { id: string } }) {
           status,
           paid_at,
           created_at,
-          mission_id,
-          missions!inner(
+          mission_definition_id,
+          mission_definitions!inner(
             title
           )
         `)
-        .eq('user_id', params.id)
+        .eq('user_id', userId)
         .order('created_at', { ascending: false })
 
       if (paybacksError) throw paybacksError
@@ -129,10 +133,10 @@ export default function UserDetailPage({ params }: { params: { id: string } }) {
 
       setMissions(missionsData.map(m => ({
         id: m.id,
-        missionTitle: m.missions.title,
-        missionType: m.missions.mission_type,
+        missionTitle: m.mission_definitions[0]?.title || 'Unknown',
+        missionType: m.mission_definitions[0]?.mission_type || 'Unknown',
         status: m.status,
-        rewardAmount: m.missions.reward_amount,
+        rewardAmount: m.mission_definitions[0]?.reward_amount || 0,
         completedAt: m.completed_at,
         proofData: m.proof_data,
         startedAt: m.started_at || m.created_at
@@ -140,7 +144,7 @@ export default function UserDetailPage({ params }: { params: { id: string } }) {
 
       setPaybacks(paybacksData.map(p => ({
         id: p.id,
-        missionTitle: p.missions.title,
+        missionTitle: p.mission_definitions[0]?.title || 'Unknown',
         amount: p.amount,
         status: p.status,
         paidAt: p.paid_at,

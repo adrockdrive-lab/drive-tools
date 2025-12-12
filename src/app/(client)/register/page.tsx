@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Select } from '@/components/ui/select'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { authService } from '@/lib/services/auth'
 import { useStores } from '@/lib/store'
 import { useRouter } from 'next/navigation'
@@ -24,6 +24,7 @@ function RegisterForm() {
   })
   const [isLoading, setIsLoading] = useState(false)
   const [countdown, setCountdown] = useState(0)
+  const [displayedVerificationCode, setDisplayedVerificationCode] = useState('')
 
     // URL에서 지점 및 추천 정보 추출
   useEffect(() => {
@@ -74,6 +75,10 @@ function RegisterForm() {
     if (result.success) {
       toast.success('인증 코드가 전송되었습니다.')
       setCountdown(180) // 3분 카운트다운
+      // 테스트용: UI에 인증번호 표시
+      if (result.verificationCode) {
+        setDisplayedVerificationCode(result.verificationCode)
+      }
     } else {
       toast.error(result.error || '인증 코드 전송에 실패했습니다.')
     }
@@ -184,16 +189,21 @@ function RegisterForm() {
 
               <div className='flex flex-col gap-4'>
                 <Label htmlFor="storeId" className="text-gray-900">지점 선택</Label>
-                <Select
-                  options={stores.map((store) => ({
-                    value: store.id.toString(),
-                    label: store.name,
-                    description: store.summaryAddress
-                  }))}
-                  value={formData.storeId}
-                  onChange={(value) => handleInputChange('storeId', value)}
-                  placeholder="지점을 선택해주세요"
-                />
+                <Select value={formData.storeId} onValueChange={(value) => handleInputChange('storeId', value)}>
+                  <SelectTrigger className="bg-gray-100 border-gray-300 text-gray-900">
+                    <SelectValue placeholder="지점을 선택해주세요" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {stores.map((store) => (
+                      <SelectItem key={store.id} value={store.id.toString()}>
+                        <div>
+                          <div className="font-medium">{store.name}</div>
+                          <div className="text-xs text-gray-500">{store.summaryAddress}</div>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <p className="text-xs text-gray-600 mt-1">
                   이용하실 지점을 선택해주세요.
                 </p>
@@ -247,6 +257,16 @@ function RegisterForm() {
                 <p className="text-xs text-muted-foreground mt-1">
                   {formData.phone}로 인증 코드가 전송됩니다.
                 </p>
+                {displayedVerificationCode && (
+                  <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <p className="text-sm font-medium text-yellow-800">
+                      🧪 테스트용 인증번호: <span className="font-mono text-lg">{displayedVerificationCode}</span>
+                    </p>
+                    <p className="text-xs text-yellow-600 mt-1">
+                      (실제 서비스에서는 SMS로 전송됩니다)
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div className="flex space-x-2">

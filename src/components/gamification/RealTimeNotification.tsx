@@ -126,11 +126,16 @@ export function ToastNotification({
 // Toast Container
 export function ToastContainer() {
   const [toasts, setToasts] = useState<ToastNotification[]>([]);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const addToast = (notification: NotificationProps) => {
     const toast: ToastNotification = {
       ...notification,
-      id: crypto.randomUUID(),
+      id: Math.random().toString(36).substr(2, 9) + Date.now().toString(),
       timestamp: new Date()
     };
 
@@ -143,8 +148,15 @@ export function ToastContainer() {
 
   // Global toast function
   useEffect(() => {
-    (window as Window & { showToast?: (notification: NotificationProps) => void }).showToast = addToast;
-  }, []);
+    if (isMounted) {
+      (window as Window & { showToast?: (notification: NotificationProps) => void }).showToast = addToast;
+    }
+  }, [isMounted]);
+
+  // Don't render anything on server-side
+  if (!isMounted) {
+    return null;
+  }
 
   return (
     <div className="fixed top-4 right-4 z-50 max-w-sm space-y-2">
@@ -196,7 +208,7 @@ export function ConnectionStatus() {
             </span>
             {lastUpdate && (
               <span className="text-xs text-gray-500">
-                {lastUpdate.toLocaleTimeString()}
+                {typeof window !== 'undefined' ? lastUpdate.toLocaleTimeString() : '--:--'}
               </span>
             )}
           </div>
@@ -215,7 +227,7 @@ export function ConnectionStatus() {
                     <div className="text-red-600">오류: {connectionError}</div>
                   )}
                   {lastUpdate && (
-                    <div>마지막 업데이트: {lastUpdate.toLocaleString()}</div>
+                    <div>마지막 업데이트: {typeof window !== 'undefined' ? lastUpdate.toLocaleString() : '--'}</div>
                   )}
                 </div>
               </motion.div>
@@ -292,7 +304,7 @@ export function SocialActivityFeed({ maxItems = 5 }: { maxItems?: number }) {
               </div>
               {activity.metadata && 'amount' in activity.metadata && typeof activity.metadata.amount === 'number' && (
                 <Badge className="bg-green-100 text-green-800 text-xs flex-shrink-0 ml-2">
-                  +{activity.metadata.amount.toLocaleString()}원
+                  +{activity.metadata.amount ? activity.metadata.amount.toLocaleString() : '0'}원
                 </Badge>
               )}
             </motion.div>
@@ -305,6 +317,10 @@ export function SocialActivityFeed({ maxItems = 5 }: { maxItems?: number }) {
 
 // Utility function to get time ago
 function getTimeAgo(date: Date): string {
+  if (typeof window === 'undefined') {
+    return '방금 전'; // Server-side fallback
+  }
+
   const now = new Date();
   const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 

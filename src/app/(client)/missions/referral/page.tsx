@@ -1,329 +1,269 @@
 'use client'
 
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { missionService } from '@/lib/services/missions'
 import { useAppStore } from '@/lib/store'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
+import { Award, UserPlus, Users, Gift, CheckCircle2 } from 'lucide-react'
 
-export default function ReferralMissionPage() {
+export default function ReferralPage() {
   const router = useRouter()
-  const { user, missions, userMissions, loadUserMissions, loadPaybacks } = useAppStore()
-  const [loading, setLoading] = useState(true)
-  const [submitting, setSubmitting] = useState(false)
-  const [referrals, setReferrals] = useState([
-    { name: '', phone: '', store: '' },
-    { name: '', phone: '', store: '' },
-    { name: '', phone: '', store: '' }
-  ])
-
-  // 추천 미션 찾기
-  const referralMission = missions.find(m => m.missionType === 'referral')
-  const userParticipation = userMissions.find(um => um.missionId === referralMission?.id)
+  const { user } = useAppStore()
+  const [loading, setLoading] = useState(false)
+  const [refereeName, setRefereeName] = useState('')
+  const [refereePhone, setRefereePhone] = useState('')
+  const [referrals, setReferrals] = useState<any[]>([])
 
   useEffect(() => {
     if (!user) {
       router.push('/login')
       return
     }
-    setLoading(false)
+
+    // 추천인 목록 로드
+    loadReferrals()
   }, [user, router])
 
-  const handleStartMission = async () => {
-    if (!user || !referralMission) return
-
+  const loadReferrals = async () => {
     try {
-      setSubmitting(true)
-      const result = await missionService.startMissionParticipation(user.id, referralMission.id)
+      // TODO: API 연결
+      // const { data } = await supabase
+      //   .from('referrals')
+      //   .select('*')
+      //   .eq('referrer_id', user!.id)
+      //   .order('created_at', { ascending: false })
 
-      if (result.success) {
-        toast.success('추천 미션이 시작되었습니다!')
-        await loadUserMissions()
-      } else {
-        toast.error(result.error || '미션 시작에 실패했습니다.')
-      }
+      // setReferrals(data || [])
     } catch (error) {
-      console.error('미션 시작 오류:', error)
-      toast.error('미션 시작에 실패했습니다.')
-    } finally {
-      setSubmitting(false)
+      console.error('Error loading referrals:', error)
     }
   }
 
-  const handleCompleteMission = async () => {
-    if (!user || !referralMission) return
-
-    // 최소 1명의 추천 정보가 있는지 확인
-    const validReferrals = referrals.filter(ref => ref.name.trim() && ref.phone.trim())
-    if (validReferrals.length === 0) {
-      toast.error('최소 1명의 지인 정보를 입력해주세요.')
+  const handleSubmit = async () => {
+    if (!refereeName.trim()) {
+      toast.error('추천인 이름을 입력해주세요.')
       return
     }
 
+    if (!refereePhone.trim()) {
+      toast.error('추천인 전화번호를 입력해주세요.')
+      return
+    }
+
+    // 전화번호 형식 검증
+    const phoneRegex = /^01[0-9]-?[0-9]{4}-?[0-9]{4}$/
+    if (!phoneRegex.test(refereePhone.replace(/-/g, ''))) {
+      toast.error('올바른 전화번호 형식이 아닙니다.')
+      return
+    }
+
+    setLoading(true)
     try {
-      setSubmitting(true)
+      // TODO: API 연결
+      // await supabase.from('referrals').insert({
+      //   referrer_id: user!.id,
+      //   referee_name: refereeName,
+      //   referee_phone: refereePhone,
+      //   is_verified: false,
+      //   reward_paid: false
+      // })
 
-      const proofData = {
-        type: 'referral',
-        referrals: validReferrals,
-        submittedAt: new Date().toISOString()
-      }
-
-      const result = await missionService.completeMissionParticipation(
-        user.id,
-        referralMission.id,
-        proofData
-      )
-
-      if (result.success) {
-        toast.success('친구 추천 미션이 완료되었습니다!')
-        await loadUserMissions()
-        await loadPaybacks()
-        setReferrals([
-          { name: '', phone: '', store: '' },
-          { name: '', phone: '', store: '' },
-          { name: '', phone: '', store: '' }
-        ])
-      } else {
-        toast.error(result.error || '미션 완료에 실패했습니다.')
-      }
+      toast.success('추천인을 등록했습니다! 등록이 확인되면 보상이 지급됩니다.')
+      setRefereeName('')
+      setRefereePhone('')
+      loadReferrals()
     } catch (error) {
-      console.error('미션 완료 오류:', error)
-      toast.error('미션 완료에 실패했습니다.')
+      toast.error('추천인 등록에 실패했습니다.')
     } finally {
-      setSubmitting(false)
+      setLoading(false)
     }
   }
 
-  const updateReferral = (index: number, field: string, value: string) => {
-    const newReferrals = [...referrals]
-    newReferrals[index] = { ...newReferrals[index], [field]: value }
-    setReferrals(newReferrals)
-  }
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background p-4">
-        <div className="max-w-2xl mx-auto space-y-6">
-          <div className="animate-pulse">
-            <div className="h-8 bg-secondary rounded mb-4"></div>
-            <div className="h-64 bg-secondary rounded"></div>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  if (!user) {
-    return null
-  }
-
   return (
-    <div className="min-h-screen bg-background p-4">
-      <div className="max-w-2xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white p-6">
+      <div className="max-w-4xl mx-auto space-y-6">
         {/* 헤더 */}
-        <div className="flex items-center space-x-3">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => router.push('/dashboard')}
-            className="text-muted-foreground"
-          >
-            ← 대시보드로
+        <div>
+          <Button variant="ghost" onClick={() => router.back()} className="mb-4">
+            ← 뒤로
           </Button>
-          <div>
-                                  <h1 className="text-2xl font-bold text-gray-900">친구 추천</h1>
-            <p className="text-gray-600">지인 추천하고 페이백 받기 (1인당 5만원)</p>
-          </div>
+          <h1 className="text-3xl font-bold text-gray-900">추천인 미션</h1>
+          <p className="text-gray-600 mt-2">친구를 추천하고 보상을 받으세요!</p>
         </div>
 
-        {referralMission ? (
-          <Card className="gradient-card border-border">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <span className="text-3xl">👥</span>
-                  <div>
-                    <CardTitle className="text-black text-xl">
-                      {referralMission.title}
-                    </CardTitle>
-                    <p className="text-muted-foreground text-sm">
-                      추천 미션
-                    </p>
-                  </div>
-                </div>
-                <Badge
-                  variant="outline"
-                  className={`${
-                    userParticipation?.status === 'completed'
-                      ? 'bg-green-500/20 text-green-400 border-green-500/30'
-                      : userParticipation?.status === 'in_progress'
-                      ? 'bg-blue-500/20 text-blue-400 border-blue-500/30'
-                      : 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'
-                  }`}
-                >
-                  {userParticipation?.status === 'completed' ? '완료' :
-                   userParticipation?.status === 'in_progress' ? '진행 중' : '대기'}
-                </Badge>
+        {/* 미션 정보 카드 */}
+        <Card className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
+          <CardContent className="py-6">
+            <h3 className="text-2xl font-bold mb-2">미션 목표</h3>
+            <p className="text-lg">학원에 친구 추천하기</p>
+            <div className="mt-4 flex items-center space-x-4 text-sm">
+              <div className="flex items-center">
+                <Award className="h-4 w-4 mr-1" />
+                <span>+100 XP</span>
               </div>
-            </CardHeader>
-
-            <CardContent className="space-y-6">
-              <div>
-                <h3 className="text-black font-semibold mb-2">미션 설명</h3>
-                <p className="text-muted-foreground">
-                  {referralMission.description}
-                </p>
+              <div className="flex items-center">
+                <Award className="h-4 w-4 mr-1" />
+                <span>+50 코인</span>
               </div>
+            </div>
+          </CardContent>
+        </Card>
 
-              <div className="bg-purple-50 rounded-lg p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-purple-600 font-bold text-lg">
-                      최대 15만원
-                    </div>
-                    <div className="text-gray-600 text-sm">
-                      보상 금액 (1인당 5만원)
-                    </div>
-                  </div>
-                  <span className="text-3xl">💰</span>
-                </div>
+        {/* 통계 카드 */}
+        <div className="grid grid-cols-2 gap-4">
+          <Card>
+            <CardContent className="py-6 text-center">
+              <Users className="h-12 w-12 text-blue-600 mx-auto mb-2" />
+              <p className="text-3xl font-bold text-gray-900">{referrals.length}</p>
+              <p className="text-sm text-gray-600">추천한 친구</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="py-6 text-center">
+              <Gift className="h-12 w-12 text-green-600 mx-auto mb-2" />
+              <p className="text-3xl font-bold text-gray-900">
+                {referrals.filter((r) => r.rewardPaid).length}
+              </p>
+              <p className="text-sm text-gray-600">보상 지급됨</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* 추천인 등록 폼 */}
+        <Card>
+          <CardHeader>
+            <CardTitle>친구 추천하기</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="name">추천인 이름</Label>
+              <Input
+                id="name"
+                placeholder="홍길동"
+                value={refereeName}
+                onChange={(e) => setRefereeName(e.target.value)}
+                className="mt-2"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="phone">추천인 전화번호</Label>
+              <Input
+                id="phone"
+                type="tel"
+                placeholder="010-1234-5678"
+                value={refereePhone}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/[^0-9-]/g, '')
+                  setRefereePhone(value)
+                }}
+                className="mt-2"
+              />
+              <p className="text-sm text-gray-500 mt-2">
+                하이픈(-)을 포함하여 입력해주세요
+              </p>
+            </div>
+
+            <Button
+              onClick={handleSubmit}
+              disabled={loading || !refereeName || !refereePhone}
+              className="w-full bg-blue-600 hover:bg-blue-700"
+              size="lg"
+            >
+              <UserPlus className="h-5 w-5 mr-2" />
+              {loading ? '등록 중...' : '추천인 등록하기'}
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* 추천인 목록 */}
+        <Card>
+          <CardHeader>
+            <CardTitle>내가 추천한 친구들</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {referrals.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <Users className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                <p>아직 추천한 친구가 없습니다.</p>
+                <p className="text-sm mt-2">친구를 추천하고 보상을 받으세요!</p>
               </div>
-
-              <div className="bg-blue-50 p-4 rounded-xl">
-                <h4 className="font-semibold text-blue-700 mb-2">📋 참여 방법</h4>
-                <ul className="text-gray-600 text-sm space-y-1">
-                  <li>• 지인의 이름과 전화번호 입력</li>
-                  <li>• 등록 매장 선택</li>
-                  <li>• 관리자가 전화 확인 후 승인</li>
-                </ul>
-              </div>
-
-              <div className="bg-green-50 p-4 rounded-xl">
-                <h4 className="font-semibold text-green-700 mb-2">🎁 혜택</h4>
-                <ul className="text-gray-600 text-sm space-y-1">
-                  <li>• 1인당 5만원 페이백</li>
-                  <li>• 최대 15만원까지 받을 수 있습니다</li>
-                </ul>
-              </div>
-
-              {!userParticipation && (
-                <Button
-                  onClick={handleStartMission}
-                  disabled={submitting}
-                  className="w-full bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90"
-                >
-                  {submitting ? '시작 중...' : '미션 시작하기'}
-                </Button>
-              )}
-
-              {userParticipation?.status === 'in_progress' && (
-                <div className="space-y-6">
-                  <div>
-                    <h3 className="text-black font-semibold mb-3">지인 정보 입력</h3>
-                    <p className="text-muted-foreground text-sm mb-4">
-                      추천할 지인의 정보를 입력해주세요. 관리자가 전화 확인 후 승인됩니다.
-                    </p>
-                  </div>
-
-                  {referrals.map((referral, index) => (
-                    <div key={index} className="space-y-3 p-4 border border-gray-200 rounded-lg">
-                      <h4 className="text-sm font-medium text-gray-700">지인 {index + 1}</h4>
-                      
-                      <div className="grid grid-cols-1 gap-3">
-                        <div>
-                          <Label htmlFor={`name-${index}`} className="text-black text-sm">
-                            이름
-                          </Label>
-                          <Input
-                            id={`name-${index}`}
-                            type="text"
-                            placeholder="지인 이름"
-                            value={referral.name}
-                            onChange={(e) => updateReferral(index, 'name', e.target.value)}
-                            className="bg-gray-50 border-gray-300 text-black mt-1"
-                          />
-                        </div>
-
-                        <div>
-                          <Label htmlFor={`phone-${index}`} className="text-black text-sm">
-                            전화번호
-                          </Label>
-                          <Input
-                            id={`phone-${index}`}
-                            type="tel"
-                            placeholder="010-0000-0000"
-                            value={referral.phone}
-                            onChange={(e) => updateReferral(index, 'phone', e.target.value)}
-                            className="bg-gray-50 border-gray-300 text-black mt-1"
-                          />
-                        </div>
-
-                        <div>
-                          <Label htmlFor={`store-${index}`} className="text-black text-sm">
-                            등록 매장
-                          </Label>
-                          <Input
-                            id={`store-${index}`}
-                            type="text"
-                            placeholder="등록할 매장명"
-                            value={referral.store}
-                            onChange={(e) => updateReferral(index, 'store', e.target.value)}
-                            className="bg-gray-50 border-gray-300 text-black mt-1"
-                          />
-                        </div>
+            ) : (
+              <div className="space-y-3">
+                {referrals.map((referral, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
+                  >
+                    <div className="flex items-center">
+                      <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
+                        <UserPlus className="h-5 w-5 text-blue-600" />
+                      </div>
+                      <div>
+                        <p className="font-medium">{referral.refereeName}</p>
+                        <p className="text-sm text-gray-600">{referral.refereePhone}</p>
                       </div>
                     </div>
-                  ))}
-
-                  <Button
-                    onClick={handleCompleteMission}
-                    disabled={submitting || referrals.filter(ref => ref.name.trim() && ref.phone.trim()).length === 0}
-                    className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-500/90 hover:to-emerald-600/90"
-                  >
-                    {submitting ? '완료 중...' : '미션 완료하기'}
-                  </Button>
-                </div>
-              )}
-
-              {userParticipation?.status === 'completed' && (
-                <div className="text-center py-4">
-                  <div className="text-4xl mb-2">✅</div>
-                  <h3 className="text-black font-semibold mb-1">미션 완료!</h3>
-                  <p className="text-muted-foreground">
-                    축하합니다! 추천 미션을 성공적으로 완료했습니다.
-                  </p>
-                  <div className="mt-4">
-                    <Button
-                      onClick={() => router.push('/dashboard')}
-                      variant="outline"
-                      className="border-border text-black hover:bg-secondary"
-                    >
-                      대시보드로 돌아가기
-                    </Button>
+                    <div className="text-right">
+                      {referral.rewardPaid ? (
+                        <div className="flex items-center text-green-600">
+                          <CheckCircle2 className="h-5 w-5 mr-1" />
+                          <span className="text-sm font-medium">지급완료</span>
+                        </div>
+                      ) : referral.isVerified ? (
+                        <span className="text-sm text-blue-600 font-medium">확인됨</span>
+                      ) : (
+                        <span className="text-sm text-gray-500">확인 대기</span>
+                      )}
+                    </div>
                   </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* 미션 가이드 */}
+        <Card>
+          <CardHeader>
+            <CardTitle>미션 가이드</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div className="flex items-start space-x-3">
+                <UserPlus className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="font-medium">1. 친구 정보 입력</p>
+                  <p className="text-sm text-gray-600">
+                    학원에 등록할 친구의 이름과 전화번호를 입력하세요
+                  </p>
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        ) : (
-          <Card className="gradient-card border-border">
-            <CardContent className="text-center py-8">
-              <div className="text-4xl mb-4">👥</div>
-              <h3 className="text-lg font-semibold text-black mb-2">
-                진행 가능한 추천 미션이 없습니다
-              </h3>
-              <p className="text-muted-foreground">
-                새로운 추천 미션이 곧 추가될 예정입니다.
-              </p>
-            </CardContent>
-          </Card>
-        )}
+              </div>
+              <div className="flex items-start space-x-3">
+                <CheckCircle2 className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="font-medium">2. 등록 확인</p>
+                  <p className="text-sm text-gray-600">
+                    친구가 실제로 학원에 등록하면 관리자가 확인합니다
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start space-x-3">
+                <Gift className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="font-medium">3. 보상 지급</p>
+                  <p className="text-sm text-gray-600">
+                    확인이 완료되면 자동으로 보상이 지급됩니다
+                  </p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   )

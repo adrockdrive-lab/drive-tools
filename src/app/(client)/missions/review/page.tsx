@@ -1,289 +1,222 @@
 'use client'
 
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { missionService } from '@/lib/services/missions'
 import { useAppStore } from '@/lib/store'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
+import { Award, CheckCircle2, Star, MessageSquare } from 'lucide-react'
 
-export default function ReviewMissionPage() {
+export default function ReviewPage() {
   const router = useRouter()
-  const { user, missions, userMissions, loadUserMissions, loadPaybacks } = useAppStore()
-  const [loading, setLoading] = useState(true)
-  const [submitting, setSubmitting] = useState(false)
+  const { user } = useAppStore()
+  const [loading, setLoading] = useState(false)
+  const [submitted, setSubmitted] = useState(false)
+  const [rating, setRating] = useState(0)
+  const [hoveredRating, setHoveredRating] = useState(0)
   const [reviewText, setReviewText] = useState('')
-  const [rating, setRating] = useState('5')
-
-  // 리뷰 미션 찾기
-  const reviewMission = missions.find(m => m.missionType === 'review')
-  const userParticipation = userMissions.find(um => um.missionId === reviewMission?.id)
 
   useEffect(() => {
     if (!user) {
       router.push('/login')
       return
     }
-    setLoading(false)
+
+    // 제출 상태 확인
+    checkSubmissionStatus()
   }, [user, router])
 
-  const handleStartMission = async () => {
-    if (!user || !reviewMission) return
-
+  const checkSubmissionStatus = async () => {
     try {
-      setSubmitting(true)
-      const result = await missionService.startMissionParticipation(user.id, reviewMission.id)
+      // TODO: API 연결
+      // const { data } = await supabase
+      //   .from('mission_participations')
+      //   .select('*')
+      //   .eq('user_id', user!.id)
+      //   .eq('mission_type', 'review')
+      //   .single()
 
-      if (result.success) {
-        toast.success('리뷰 미션이 시작되었습니다!')
-        await loadUserMissions()
-      } else {
-        toast.error(result.error || '미션 시작에 실패했습니다.')
-      }
+      // setSubmitted(data?.status === 'submitted' || data?.status === 'verified')
     } catch (error) {
-      console.error('미션 시작 오류:', error)
-      toast.error('미션 시작에 실패했습니다.')
-    } finally {
-      setSubmitting(false)
+      console.error('Error checking submission:', error)
     }
   }
 
-  const handleCompleteMission = async () => {
-    if (!user || !reviewMission) return
-
-    if (!reviewText.trim()) {
-      toast.error('리뷰 내용을 입력해주세요.')
+  const handleSubmit = async () => {
+    if (rating === 0) {
+      toast.error('별점을 선택해주세요.')
       return
     }
 
-    if (reviewText.length < 10) {
-      toast.error('리뷰는 최소 10자 이상 작성해주세요.')
+    if (!reviewText.trim() || reviewText.trim().length < 10) {
+      toast.error('후기를 10자 이상 작성해주세요.')
       return
     }
 
+    setLoading(true)
     try {
-      setSubmitting(true)
+      // TODO: API 연결
+      // await supabase.from('mission_participations').insert({
+      //   user_id: user!.id,
+      //   mission_type: 'review',
+      //   proof_data: { rating, reviewText },
+      //   status: 'submitted'
+      // })
 
-      const proofData = {
-        type: 'review',
-        reviewText,
-        rating: parseInt(rating),
-        submittedAt: new Date().toISOString()
-      }
-
-      const result = await missionService.completeMissionParticipation(
-        user.id,
-        reviewMission.id,
-        proofData
-      )
-
-      if (result.success) {
-        toast.success('리뷰 미션이 완료되었습니다!')
-        await loadUserMissions()
-        await loadPaybacks()
-        setReviewText('')
-        setRating('5')
-      } else {
-        toast.error(result.error || '미션 완료에 실패했습니다.')
-      }
+      setSubmitted(true)
+      toast.success('후기를 제출했습니다! +50 XP, +30 코인을 획득했습니다!')
     } catch (error) {
-      console.error('미션 완료 오류:', error)
-      toast.error('미션 완료에 실패했습니다.')
+      toast.error('후기 제출에 실패했습니다.')
     } finally {
-      setSubmitting(false)
+      setLoading(false)
     }
-  }
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background p-4">
-        <div className="max-w-2xl mx-auto space-y-6">
-          <div className="animate-pulse">
-            <div className="h-8 bg-secondary rounded mb-4"></div>
-            <div className="h-64 bg-secondary rounded"></div>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  if (!user) {
-    return null
   }
 
   return (
-    <div className="min-h-screen bg-background p-4">
-      <div className="max-w-2xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gradient-to-b from-orange-50 to-white p-6">
+      <div className="max-w-4xl mx-auto space-y-6">
         {/* 헤더 */}
-        <div className="flex items-center space-x-3">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => router.push('/dashboard')}
-            className="text-muted-foreground"
-          >
-            ← 대시보드로
+        <div>
+          <Button variant="ghost" onClick={() => router.back()} className="mb-4">
+            ← 뒤로
           </Button>
-          <div>
-            <h1 className="text-2xl font-bold text-black">리뷰 미션</h1>
-            <p className="text-muted-foreground">드라이빙존에 대한 리뷰를 작성하고 보상을 받아보세요</p>
-          </div>
+          <h1 className="text-3xl font-bold text-gray-900">후기 작성 미션</h1>
+          <p className="text-gray-600 mt-2">학원 후기를 작성하고 보상을 받으세요!</p>
         </div>
 
-        {reviewMission ? (
-          <Card className="gradient-card border-border">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <span className="text-3xl">⭐</span>
-                  <div>
-                    <CardTitle className="text-black text-xl">
-                      {reviewMission.title}
-                    </CardTitle>
-                    <p className="text-muted-foreground text-sm">
-                      리뷰 미션
-                    </p>
-                  </div>
-                </div>
-                <Badge
-                  variant="outline"
-                  className={`${
-                    userParticipation?.status === 'completed'
-                      ? 'bg-green-500/20 text-green-400 border-green-500/30'
-                      : userParticipation?.status === 'in_progress'
-                      ? 'bg-blue-500/20 text-blue-400 border-blue-500/30'
-                      : 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'
-                  }`}
-                >
-                  {userParticipation?.status === 'completed' ? '완료' :
-                   userParticipation?.status === 'in_progress' ? '진행 중' : '대기'}
-                </Badge>
+        {/* 미션 정보 카드 */}
+        <Card className="bg-gradient-to-r from-orange-600 to-red-600 text-white">
+          <CardContent className="py-6">
+            <h3 className="text-2xl font-bold mb-2">미션 목표</h3>
+            <p className="text-lg">학원 이용 후기 작성</p>
+            <div className="mt-4 flex items-center space-x-4 text-sm">
+              <div className="flex items-center">
+                <Award className="h-4 w-4 mr-1" />
+                <span>+50 XP</span>
               </div>
-            </CardHeader>
-
-            <CardContent className="space-y-6">
-              <div>
-                <h3 className="text-black font-semibold mb-2">미션 설명</h3>
-                <p className="text-muted-foreground">
-                  {reviewMission.description}
-                </p>
+              <div className="flex items-center">
+                <Award className="h-4 w-4 mr-1" />
+                <span>+30 코인</span>
               </div>
+            </div>
+          </CardContent>
+        </Card>
 
-              <div className="bg-secondary/50 rounded-lg p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-black font-bold text-lg">
-                      {reviewMission.rewardAmount.toLocaleString()}원
-                    </div>
-                    <div className="text-muted-foreground text-sm">
-                      보상 금액
-                    </div>
-                  </div>
-                  <span className="text-3xl">💰</span>
-                </div>
-              </div>
-
-              <div className="bg-blue-500/20 p-4 rounded-xl">
-                <h4 className="font-semibold text-blue-400 mb-2">📋 참여 방법</h4>
-                <ul className="text-muted-foreground text-sm space-y-1">
-                  <li>• 드라이빙존에 대한 솔직한 리뷰 작성</li>
-                  <li>• 최소 10자 이상 작성</li>
-                  <li>• 별점 평가 포함</li>
-                </ul>
-              </div>
-
-              {!userParticipation && (
-                <Button
-                  onClick={handleStartMission}
-                  disabled={submitting}
-                  className="w-full bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90"
-                >
-                  {submitting ? '시작 중...' : '미션 시작하기'}
-                </Button>
-              )}
-
-              {userParticipation?.status === 'in_progress' && (
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="rating" className="text-black">
-                      별점 평가
-                    </Label>
-                    <select
-                      id="rating"
-                      value={rating}
-                      onChange={(e) => setRating(e.target.value)}
-                      className="w-full bg-secondary/50 border border-border text-black rounded-md px-3 py-2 mt-1"
-                    >
-                      <option value="5">⭐⭐⭐⭐⭐ (5점)</option>
-                      <option value="4">⭐⭐⭐⭐ (4점)</option>
-                      <option value="3">⭐⭐⭐ (3점)</option>
-                      <option value="2">⭐⭐ (2점)</option>
-                      <option value="1">⭐ (1점)</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="reviewText" className="text-black">
-                      리뷰 내용
-                    </Label>
-                    <Textarea
-                      id="reviewText"
-                      placeholder="드라이빙존에 대한 솔직한 리뷰를 작성해주세요..."
-                      value={reviewText}
-                      onChange={(e) => setReviewText(e.target.value)}
-                      className="bg-secondary/50 border-border text-black mt-1 min-h-[120px]"
-                    />
-                    <p className="text-muted-foreground text-xs mt-1">
-                      최소 10자 이상 작성해주세요. ({reviewText.length}/10)
-                    </p>
-                  </div>
-
-                  <Button
-                    onClick={handleCompleteMission}
-                    disabled={submitting || !reviewText.trim() || reviewText.length < 10}
-                    className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-500/90 hover:to-emerald-600/90"
-                  >
-                    {submitting ? '완료 중...' : '미션 완료하기'}
-                  </Button>
-                </div>
-              )}
-
-              {userParticipation?.status === 'completed' && (
-                <div className="text-center py-4">
-                  <div className="text-4xl mb-2">✅</div>
-                  <h3 className="text-black font-semibold mb-1">미션 완료!</h3>
-                  <p className="text-muted-foreground">
-                    축하합니다! 리뷰 미션을 성공적으로 완료했습니다.
-                  </p>
-                  <div className="mt-4">
-                    <Button
-                      onClick={() => router.push('/dashboard')}
-                      variant="outline"
-                      className="border-border text-black hover:bg-secondary"
-                    >
-                      대시보드로 돌아가기
-                    </Button>
-                  </div>
-                </div>
-              )}
+        {/* 제출 폼 또는 상태 */}
+        {submitted ? (
+          <Card>
+            <CardContent className="py-12 text-center">
+              <CheckCircle2 className="h-16 w-16 text-green-600 mx-auto mb-4" />
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">제출 완료!</h3>
+              <p className="text-gray-600 mb-4">소중한 후기 감사합니다.</p>
+              <Button variant="outline" onClick={() => router.push('/dashboard')}>
+                대시보드로 돌아가기
+              </Button>
             </CardContent>
           </Card>
         ) : (
-          <Card className="gradient-card border-border">
-            <CardContent className="text-center py-8">
-              <div className="text-4xl mb-4">⭐</div>
-              <h3 className="text-lg font-semibold text-black mb-2">
-                진행 가능한 리뷰 미션이 없습니다
-              </h3>
-              <p className="text-muted-foreground">
-                새로운 리뷰 미션이 곧 추가될 예정입니다.
-              </p>
-            </CardContent>
-          </Card>
+          <>
+            {/* 제출 폼 */}
+            <Card>
+              <CardHeader>
+                <CardTitle>후기 작성</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div>
+                  <Label>별점</Label>
+                  <div className="flex items-center space-x-2 mt-2">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        type="button"
+                        onClick={() => setRating(star)}
+                        onMouseEnter={() => setHoveredRating(star)}
+                        onMouseLeave={() => setHoveredRating(0)}
+                        className="focus:outline-none"
+                      >
+                        <Star
+                          className={`h-10 w-10 transition-colors ${
+                            star <= (hoveredRating || rating)
+                              ? 'fill-yellow-400 text-yellow-400'
+                              : 'text-gray-300'
+                          }`}
+                        />
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-sm text-gray-500 mt-2">
+                    {rating === 0
+                      ? '별점을 선택해주세요'
+                      : `${rating}점을 선택하셨습니다`}
+                  </p>
+                </div>
+
+                <div>
+                  <Label htmlFor="review">후기 내용</Label>
+                  <Textarea
+                    id="review"
+                    placeholder="학원 이용 경험을 자유롭게 작성해주세요 (최소 10자)"
+                    value={reviewText}
+                    onChange={(e) => setReviewText(e.target.value)}
+                    className="mt-2 min-h-[200px]"
+                  />
+                  <p className="text-sm text-gray-500 mt-2">
+                    {reviewText.length}자 / 최소 10자
+                  </p>
+                </div>
+
+                <Button
+                  onClick={handleSubmit}
+                  disabled={loading || rating === 0 || reviewText.trim().length < 10}
+                  className="w-full bg-orange-600 hover:bg-orange-700"
+                  size="lg"
+                >
+                  {loading ? '제출 중...' : '후기 제출하기'}
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* 미션 가이드 */}
+            <Card>
+              <CardHeader>
+                <CardTitle>미션 가이드</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex items-start space-x-3">
+                    <Star className="h-5 w-5 text-orange-600 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="font-medium">1. 별점 선택</p>
+                      <p className="text-sm text-gray-600">
+                        학원 이용 만족도를 별점으로 표현해주세요
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start space-x-3">
+                    <MessageSquare className="h-5 w-5 text-orange-600 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="font-medium">2. 후기 작성</p>
+                      <p className="text-sm text-gray-600">
+                        솔직하고 구체적인 후기를 작성해주세요 (최소 10자)
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start space-x-3">
+                    <CheckCircle2 className="h-5 w-5 text-orange-600 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="font-medium">3. 미션 제출</p>
+                      <p className="text-sm text-gray-600">
+                        모든 정보를 입력하고 제출 버튼을 누르세요
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </>
         )}
       </div>
     </div>

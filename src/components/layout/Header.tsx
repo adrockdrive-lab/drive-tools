@@ -11,6 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
+import { NotificationCenter } from '@/components/notifications/NotificationCenter';
 import { useAppStore } from '@/lib/store';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
@@ -99,8 +100,19 @@ export function Header({ onToggleMobileNav }: HeaderProps) {
                   <Coins className="w-4 h-4 text-blue-600" />
                 </motion.div>
                 <span className="text-sm font-semibold text-gray-800">
-                  {totalPayback.toLocaleString()}원
+                  {totalPayback ? totalPayback.toLocaleString() : '0'}원
                 </span>
+              </motion.div>
+            )}
+
+            {/* 알림 센터 */}
+            {user && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.4, duration: 0.3 }}
+              >
+                <NotificationCenter />
               </motion.div>
             )}
 
@@ -301,7 +313,7 @@ export function Header({ onToggleMobileNav }: HeaderProps) {
                         <div className="flex items-center justify-center space-x-2">
                           <Coins className="w-4 h-4 text-blue-600" />
                           <span className="text-sm font-semibold text-gray-800">
-                            총 페이백: {totalPayback.toLocaleString()}원
+                            총 페이백: {totalPayback ? totalPayback.toLocaleString() : '0'}원
                           </span>
                         </div>
                       </motion.div>

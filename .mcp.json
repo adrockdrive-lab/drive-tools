@@ -1,0 +1,21 @@
+{
+  "mcpServers": {
+    "supabase": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@supabase/mcp-server-supabase@latest",
+        "--access-token",
+        "sbp_7bd0aa712485d977bb48e2567b9478e4adeb6a68"
+      ]
+    },
+     "playwright": {
+      "command": "npx",
+      "browser": "chromium",
+      "args": [
+        "-y",
+        "@automatalabs/mcp-server-playwright"
+      ]
+    }
+  }
+}

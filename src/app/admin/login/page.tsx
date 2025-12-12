@@ -45,9 +45,11 @@ export default function AdminLoginPage() {
       const result = await adminService.login(formData.email, formData.password)
 
       if (result.success && result.admin) {
+        console.log('로그인 성공:', result.admin)
         toast.success('로그인되었습니다.')
         router.push('/admin/dashboard')
       } else {
+        console.log('로그인 실패:', result.error)
         toast.error(result.error || '로그인에 실패했습니다.')
       }
     } catch (error) {

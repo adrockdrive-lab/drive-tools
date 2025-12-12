@@ -1,22 +1,35 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
+import { createPermissionCheck, getAccessibleMenuItems } from '@/lib/permissions'
 import { adminService } from '@/lib/services/admin'
 import type { Admin } from '@/types'
 import {
   BarChart3,
+  ChevronDown,
+  ChevronRight,
   CreditCard,
+  FileText,
   Home,
   LogOut,
+  Megaphone,
   Menu,
   Settings,
   Shield,
+  Target,
   Users,
   X
 } from 'lucide-react'
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
+
+type NavigationItem = {
+  name: string
+  href?: string
+  icon: any
+  children?: NavigationItem[]
+}
 
 export default function AdminLayout({
   children,
@@ -40,6 +53,7 @@ export default function AdminLayout({
       // 로그인 페이지가 아닌 경우에만 인증 확인
       if (pathname !== '/admin/login') {
         const currentAdmin = adminService.getCurrentAdmin()
+        console.log('레이아웃에서 가져온 관리자 정보:', currentAdmin)
         if (!currentAdmin) {
           router.push('/admin/login')
           return
@@ -61,6 +75,7 @@ export default function AdminLayout({
       }
 
       await adminService.logout()
+      setAdmin(null) // 상태도 초기화
       router.push('/admin/login')
       toast.success('로그아웃되었습니다.')
     } catch (error) {
@@ -69,14 +84,63 @@ export default function AdminLayout({
     }
   }
 
-  const navigation = [
-    { name: '대시보드', href: '/admin/dashboard', icon: Home },
-    { name: '사용자 관리', href: '/admin/users', icon: Users },
-    { name: '역할 관리', href: '/admin/roles', icon: Shield },
-    { name: '미션 관리', href: '/admin/missions', icon: BarChart3 },
-    { name: '페이백 관리', href: '/admin/paybacks', icon: CreditCard },
-    { name: '설정', href: '/admin/settings', icon: Settings },
-  ]
+  const [expandedMenus, setExpandedMenus] = useState<Set<string>>(new Set())
+
+  // 권한 기반 네비게이션 메뉴 생성
+  const getNavigation = (): NavigationItem[] => {
+    if (!admin) return []
+
+    const permissionCheck = createPermissionCheck(
+      admin.role as any,
+      admin.storeIds
+    )
+
+    const accessibleItems = getAccessibleMenuItems(permissionCheck)
+
+    return accessibleItems
+      .filter(item => item.accessible)
+      .map(item => ({
+        name: item.title,
+        href: item.href,
+        icon: getIconComponent(item.icon),
+        children: item.children
+          ?.filter(child => child.accessible)
+          .map(child => ({
+            name: child.title,
+            href: child.href,
+            icon: getIconComponent('default')
+          }))
+      }))
+  }
+
+  const getIconComponent = (iconName: string) => {
+    const iconMap: Record<string, any> = {
+      dashboard: Home,
+      users: Users,
+      roles: Shield,
+      missions: Target,
+      'missions-type': BarChart3,
+      submissions: Target,
+      paybacks: CreditCard,
+      marketing: Megaphone,
+      files: FileText,
+      settings: Settings,
+      default: BarChart3
+    }
+    return iconMap[iconName] || BarChart3
+  }
+
+  const navigation = getNavigation()
+
+  const toggleMenu = (menuName: string) => {
+    const newExpandedMenus = new Set(expandedMenus)
+    if (newExpandedMenus.has(menuName)) {
+      newExpandedMenus.delete(menuName)
+    } else {
+      newExpandedMenus.add(menuName)
+    }
+    setExpandedMenus(newExpandedMenus)
+  }
 
   // 서버 사이드 렌더링 중에는 로딩 상태 표시
   if (!isClient) {
@@ -144,21 +208,73 @@ export default function AdminLayout({
           {/* Navigation */}
           <nav className="flex-1 p-4 space-y-2">
             {navigation.map((item) => {
-              const isActive = pathname === item.href
-              return (
-                <Button
-                  key={item.name}
-                  variant={isActive ? "default" : "ghost"}
-                  className={`w-full justify-start ${isActive ? 'bg-blue-600 text-white' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'}`}
-                  onClick={() => {
-                    router.push(item.href)
-                    setSidebarOpen(false)
-                  }}
-                >
-                  <item.icon className="mr-3 h-4 w-4" />
-                  {item.name}
-                </Button>
-              )
+              if (item.children && item.children.length > 0) {
+                // 서브메뉴가 있는 항목
+                const isExpanded = expandedMenus.has(item.name)
+                const hasActiveChild = item.children.some(child => pathname === child.href)
+
+                return (
+                  <div key={item.name}>
+                    <Button
+                      variant={hasActiveChild ? "default" : "ghost"}
+                      className={`w-full justify-start ${hasActiveChild ? 'bg-blue-600 text-white' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'}`}
+                      onClick={() => toggleMenu(item.name)}
+                    >
+                      <item.icon className="mr-3 h-4 w-4" />
+                      {item.name}
+                      {isExpanded ? (
+                        <ChevronDown className="ml-auto h-4 w-4" />
+                      ) : (
+                        <ChevronRight className="ml-auto h-4 w-4" />
+                      )}
+                    </Button>
+
+                    {isExpanded && (
+                      <div className="ml-6 mt-2 space-y-1">
+                        {item.children.map((child) => {
+                          const isActive = pathname === child.href
+                          return (
+                            <Button
+                              key={child.name}
+                              variant={isActive ? "default" : "ghost"}
+                              size="sm"
+                              className={`w-full justify-start ${isActive ? 'bg-blue-600 text-white' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}`}
+                              onClick={() => {
+                                if (child.href) {
+                                  router.push(child.href)
+                                  setSidebarOpen(false)
+                                }
+                              }}
+                            >
+                              <child.icon className="mr-3 h-4 w-4" />
+                              {child.name}
+                            </Button>
+                          )
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )
+              } else {
+                // 일반 메뉴 항목
+                const isActive = pathname === item.href
+                return (
+                  <Button
+                    key={item.name}
+                    variant={isActive ? "default" : "ghost"}
+                    className={`w-full justify-start ${isActive ? 'bg-blue-600 text-white' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'}`}
+                    onClick={() => {
+                      if (item.href) {
+                        router.push(item.href)
+                        setSidebarOpen(false)
+                      }
+                    }}
+                  >
+                    <item.icon className="mr-3 h-4 w-4" />
+                    {item.name}
+                  </Button>
+                )
+              }
             })}
           </nav>
 

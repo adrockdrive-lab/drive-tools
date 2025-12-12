@@ -4,181 +4,282 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { missionService } from '@/lib/services/missions'
 import { useAppStore } from '@/lib/store'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
+import { Award, CheckCircle2, Upload, ExternalLink, Share2 } from 'lucide-react'
 
-export default function SnsMissionPage() {
+export default function SnsPage() {
   const router = useRouter()
-  const { user, missions, userMissions } = useAppStore()
+  const { user } = useAppStore()
+  const [loading, setLoading] = useState(false)
+  const [submitted, setSubmitted] = useState(false)
   const [snsUrl, setSnsUrl] = useState('')
-  const [platform, setPlatform] = useState('instagram')
-  const [isLoading, setIsLoading] = useState(false)
-
-  const mission = missions.find(m => m.missionType === 'sns')
-  const userParticipation = userMissions.find(um => um.missionId === mission?.id)
+  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [imagePreview, setImagePreview] = useState('')
 
   useEffect(() => {
     if (!user) {
       router.push('/login')
       return
     }
+
+    // 제출 상태 확인
+    checkSubmissionStatus()
   }, [user, router])
 
-  const handleStartMission = async () => {
-    if (!user || !mission) return
-
-    setIsLoading(true)
+  const checkSubmissionStatus = async () => {
     try {
-      const result = await missionService.startMissionParticipation(user.id, mission.id)
-      if (result.success) {
-        toast.success('SNS 미션이 시작되었습니다!')
-        window.location.reload()
-      } else {
-        toast.error(result.error || '미션 시작에 실패했습니다.')
-      }
+      // TODO: API 연결
+      // const { data } = await supabase
+      //   .from('mission_participations')
+      //   .select('*')
+      //   .eq('user_id', user!.id)
+      //   .eq('mission_type', 'sns')
+      //   .single()
+
+      // setSubmitted(data?.status === 'submitted' || data?.status === 'verified')
     } catch (error) {
-      toast.error('미션 시작 중 오류가 발생했습니다.')
-    } finally {
-      setIsLoading(false)
+      console.error('Error checking submission:', error)
     }
   }
 
-  const handleCompleteMission = async () => {
-    if (!user || !mission || !snsUrl) {
-      toast.error('SNS URL을 입력해주세요.')
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error('파일 크기는 10MB 이하여야 합니다.')
+        return
+      }
+      setImageFile(file)
+      setImagePreview(URL.createObjectURL(file))
+    }
+  }
+
+  const handleSubmit = async () => {
+    if (!snsUrl.trim()) {
+      toast.error('SNS 게시물 URL을 입력해주세요.')
       return
     }
 
-    setIsLoading(true)
+    // URL 형식 간단 검증
     try {
-      const proofData = {
-        snsUrl,
-        platform
-      }
-
-      const result = await missionService.completeMissionParticipation(user.id, mission.id, proofData)
-      if (result.success) {
-        toast.success('SNS 미션이 완료되었습니다!')
-        router.push('/dashboard')
-      } else {
-        toast.error(result.error || '미션 완료에 실패했습니다.')
-      }
+      new URL(snsUrl)
     } catch (error) {
-      toast.error('미션 완료 중 오류가 발생했습니다.')
+      toast.error('올바른 URL 형식이 아닙니다.')
+      return
+    }
+
+    if (!imageFile) {
+      toast.error('캡처 이미지를 업로드해주세요.')
+      return
+    }
+
+    setLoading(true)
+    try {
+      // TODO: API 연결
+      // 1. 이미지 업로드
+      // const { url } = await uploadMissionProof(user!.id, 'sns', imageFile)
+
+      // 2. 미션 제출
+      // await supabase.from('mission_participations').insert({
+      //   user_id: user!.id,
+      //   mission_type: 'sns',
+      //   proof_data: { snsUrl, imageUrl: url },
+      //   status: 'submitted'
+      // })
+
+      setSubmitted(true)
+      toast.success('미션을 제출했습니다! +40 XP, +25 코인을 획득했습니다!')
+    } catch (error) {
+      toast.error('미션 제출에 실패했습니다.')
     } finally {
-      setIsLoading(false)
+      setLoading(false)
     }
   }
 
-  if (!user) return null
-
   return (
-    <div className="min-h-screen bg-background p-4">
-      <div className="max-w-2xl mx-auto">
-        <Card className="gradient-card border-border">
-          <CardHeader>
-            <CardTitle className="text-2xl font-bold text-black">SNS 미션</CardTitle>
-            <p className="text-muted-foreground">
-              드라이빙존을 SNS에 공유하고 리워드를 받아보세요!
-            </p>
-          </CardHeader>
+    <div className="min-h-screen bg-gradient-to-b from-pink-50 to-white p-6">
+      <div className="max-w-4xl mx-auto space-y-6">
+        {/* 헤더 */}
+        <div>
+          <Button variant="ghost" onClick={() => router.back()} className="mb-4">
+            ← 뒤로
+          </Button>
+          <h1 className="text-3xl font-bold text-gray-900">SNS 공유 미션</h1>
+          <p className="text-gray-600 mt-2">SNS에 학원을 공유하고 보상을 받으세요!</p>
+        </div>
 
-          <CardContent className="space-y-6">
-            {!userParticipation ? (
-              <div className="text-center space-y-4">
-                <div className="text-6xl">📱</div>
-                <h3 className="text-lg font-semibold text-black">SNS 공유 미션</h3>
-                <p className="text-muted-foreground">
-                  드라이빙존에서의 경험을 SNS에 공유하고 10,000원을 받아보세요!
-                </p>
-                <Button
-                  onClick={handleStartMission}
-                  disabled={isLoading}
-                  className="bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90"
-                >
-                  {isLoading ? '시작 중...' : '미션 시작'}
-                </Button>
+        {/* 미션 정보 카드 */}
+        <Card className="bg-gradient-to-r from-pink-600 to-rose-600 text-white">
+          <CardContent className="py-6">
+            <h3 className="text-2xl font-bold mb-2">미션 목표</h3>
+            <p className="text-lg">SNS에 학원 홍보 게시물 공유</p>
+            <div className="mt-4 flex items-center space-x-4 text-sm">
+              <div className="flex items-center">
+                <Award className="h-4 w-4 mr-1" />
+                <span>+40 XP</span>
               </div>
-            ) : userParticipation.status === 'in_progress' ? (
-              <div className="space-y-4">
-                <div className="text-center">
-                  <div className="text-4xl mb-4">📸</div>
-                  <h3 className="text-lg font-semibold text-black mb-2">SNS 공유하기</h3>
-                  <p className="text-muted-foreground">
-                    드라이빙존에서의 경험을 SNS에 공유하고 URL을 입력해주세요.
+              <div className="flex items-center">
+                <Award className="h-4 w-4 mr-1" />
+                <span>+25 코인</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* 제출 폼 또는 상태 */}
+        {submitted ? (
+          <Card>
+            <CardContent className="py-12 text-center">
+              <CheckCircle2 className="h-16 w-16 text-green-600 mx-auto mb-4" />
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">제출 완료!</h3>
+              <p className="text-gray-600 mb-4">관리자 검토 후 승인될 예정입니다.</p>
+              <Button variant="outline" onClick={() => router.push('/dashboard')}>
+                대시보드로 돌아가기
+              </Button>
+            </CardContent>
+          </Card>
+        ) : (
+          <>
+            {/* 제출 폼 */}
+            <Card>
+              <CardHeader>
+                <CardTitle>미션 제출</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div>
+                  <Label htmlFor="url">SNS 게시물 URL</Label>
+                  <div className="flex space-x-2 mt-2">
+                    <Input
+                      id="url"
+                      type="url"
+                      placeholder="https://instagram.com/p/..."
+                      value={snsUrl}
+                      onChange={(e) => setSnsUrl(e.target.value)}
+                      className="flex-1"
+                    />
+                    {snsUrl && (
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => window.open(snsUrl, '_blank')}
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                  <p className="text-sm text-gray-500 mt-2">
+                    인스타그램, 페이스북 등의 게시물 링크를 입력하세요
                   </p>
                 </div>
 
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="platform" className="text-black">SNS 플랫폼</Label>
-                    <select
-                      id="platform"
-                      value={platform}
-                      onChange={(e) => setPlatform(e.target.value)}
-                      className="w-full bg-secondary/50 border border-border text-black rounded-md px-3 py-2"
-                    >
-                      <option value="instagram">Instagram</option>
-                      <option value="facebook">Facebook</option>
-                      <option value="twitter">Twitter</option>
-                      <option value="youtube">YouTube</option>
-                      <option value="tiktok">TikTok</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="snsUrl" className="text-black">SNS URL</Label>
-                    <Input
-                      id="snsUrl"
-                      type="url"
-                      placeholder="https://www.instagram.com/p/..."
-                      value={snsUrl}
-                      onChange={(e) => setSnsUrl(e.target.value)}
-                      className="bg-secondary/50 border-border text-black"
+                <div>
+                  <Label htmlFor="image">게시물 캡처 이미지</Label>
+                  <div className="mt-2">
+                    <input
+                      type="file"
+                      id="image"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      className="hidden"
                     />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      공유한 SNS 게시물의 URL을 입력해주세요.
-                    </p>
+                    <label
+                      htmlFor="image"
+                      className="cursor-pointer inline-flex items-center px-4 py-3 border border-gray-300 rounded-lg shadow-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                    >
+                      <Upload className="h-5 w-5 mr-2" />
+                      캡처 이미지 선택
+                    </label>
                   </div>
+                  {imagePreview && (
+                    <div className="mt-4">
+                      <img
+                        src={imagePreview}
+                        alt="Preview"
+                        className="w-full max-w-md h-64 object-cover rounded-lg border-2 border-pink-200"
+                      />
+                    </div>
+                  )}
+                  <p className="text-sm text-gray-500 mt-2">
+                    게시물 캡처 이미지를 업로드해주세요 (최대 10MB)
+                  </p>
                 </div>
 
-                <div className="flex space-x-2">
-                  <Button
-                    onClick={() => router.push('/dashboard')}
-                    variant="outline"
-                    className="flex-1 border-border text-black hover:bg-secondary"
-                  >
-                    대시보드로
-                  </Button>
-                  <Button
-                    onClick={handleCompleteMission}
-                    disabled={isLoading || !snsUrl}
-                    className="flex-1 bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90"
-                  >
-                    {isLoading ? '완료 중...' : '미션 완료'}
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <div className="text-center space-y-4">
-                <div className="text-6xl">✅</div>
-                <h3 className="text-lg font-semibold text-black">미션 완료!</h3>
-                <p className="text-muted-foreground">
-                  SNS 미션을 성공적으로 완료했습니다.
-                </p>
                 <Button
-                  onClick={() => router.push('/dashboard')}
-                  className="bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90"
+                  onClick={handleSubmit}
+                  disabled={loading || !snsUrl || !imageFile}
+                  className="w-full bg-pink-600 hover:bg-pink-700"
+                  size="lg"
                 >
-                  대시보드로 돌아가기
+                  {loading ? '제출 중...' : '미션 제출하기'}
                 </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
+
+            {/* 미션 가이드 */}
+            <Card>
+              <CardHeader>
+                <CardTitle>미션 가이드</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex items-start space-x-3">
+                    <Share2 className="h-5 w-5 text-pink-600 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="font-medium">1. SNS에 게시물 작성</p>
+                      <p className="text-sm text-gray-600">
+                        인스타그램, 페이스북 등에 학원 관련 게시물을 작성하세요
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start space-x-3">
+                    <Upload className="h-5 w-5 text-pink-600 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="font-medium">2. 게시물 캡처</p>
+                      <p className="text-sm text-gray-600">
+                        작성한 게시물을 캡처하여 이미지로 저장하세요
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start space-x-3">
+                    <ExternalLink className="h-5 w-5 text-pink-600 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="font-medium">3. URL과 이미지 제출</p>
+                      <p className="text-sm text-gray-600">
+                        게시물 URL과 캡처 이미지를 함께 제출하세요
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* 작성 예시 */}
+            <Card>
+              <CardHeader>
+                <CardTitle>작성 예시</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <p className="text-sm text-gray-700 leading-relaxed">
+                    &ldquo;드라이빙 존에서 운전면허 취득 완료! 🚗
+                    <br />
+                    친절한 강사님들과 체계적인 교육 덕분에 단기간에 합격할 수 있었어요!
+                    <br />
+                    운전면허 준비하시는 분들께 강력 추천합니다 👍
+                    <br />
+                    #운전면허 #드라이빙존 #운전학원&rdquo;
+                  </p>
+                </div>
+                <p className="text-sm text-gray-500 mt-3">
+                  위와 같이 학원 이름과 경험을 포함하여 작성해주세요
+                </p>
+              </CardContent>
+            </Card>
+          </>
+        )}
       </div>
     </div>
   )

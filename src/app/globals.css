@@ -48,41 +48,6 @@
 
 :root {
   --radius: 1rem;
-  --background: #1a1a1a;
-  --foreground: #ffffff;
-  --card: #2a2a2a;
-  --card-foreground: #ffffff;
-  --popover: #2a2a2a;
-  --popover-foreground: #ffffff;
-  --primary: #6366f1;
-  --primary-foreground: #ffffff;
-  --secondary: #374151;
-  --secondary-foreground: #ffffff;
-  --muted: #374151;
-  --muted-foreground: #9ca3af;
-  --accent: #374151;
-  --accent-foreground: #ffffff;
-  --destructive: #ef4444;
-  --border: #374151;
-  --input: #374151;
-  --ring: #6366f1;
-  --chart-1: #8b5cf6;
-  --chart-2: #06b6d4;
-  --chart-3: #3b82f6;
-  --chart-4: #f59e0b;
-  --chart-5: #ef4444;
-  --sidebar: #1f1f1f;
-  --sidebar-foreground: #ffffff;
-  --sidebar-primary: #6366f1;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #374151;
-  --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: #374151;
-  --sidebar-ring: #6366f1;
-}
-
-/* Dark mode styles - disabled for light mode preference */
-.dark {
   --background: #ffffff;
   --foreground: #1f2937;
   --card: #ffffff;
@@ -114,6 +79,41 @@
   --sidebar-accent-foreground: #1f2937;
   --sidebar-border: #e5e7eb;
   --sidebar-ring: #3b82f6;
+}
+
+/* Dark mode styles */
+.dark {
+  --background: #1a1a1a;
+  --foreground: #ffffff;
+  --card: #2a2a2a;
+  --card-foreground: #ffffff;
+  --popover: #2a2a2a;
+  --popover-foreground: #ffffff;
+  --primary: #6366f1;
+  --primary-foreground: #ffffff;
+  --secondary: #374151;
+  --secondary-foreground: #ffffff;
+  --muted: #374151;
+  --muted-foreground: #9ca3af;
+  --accent: #374151;
+  --accent-foreground: #ffffff;
+  --destructive: #ef4444;
+  --border: #374151;
+  --input: #374151;
+  --ring: #6366f1;
+  --chart-1: #8b5cf6;
+  --chart-2: #06b6d4;
+  --chart-3: #3b82f6;
+  --chart-4: #f59e0b;
+  --chart-5: #ef4444;
+  --sidebar: #1f1f1f;
+  --sidebar-foreground: #ffffff;
+  --sidebar-primary: #6366f1;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #374151;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: #374151;
+  --sidebar-ring: #6366f1;
 }
 
 @layer base {

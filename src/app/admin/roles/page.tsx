@@ -1,6 +1,7 @@
 'use client'
 
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -22,6 +23,17 @@ import {
 import { adminService } from '@/lib/services/admin'
 import { supabase } from '@/lib/supabase'
 import type { UserRole, UserWithRoles } from '@/types'
+import {
+  ColumnDef,
+  ColumnFiltersState,
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  SortingState,
+  useReactTable,
+} from '@tanstack/react-table'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
@@ -31,10 +43,11 @@ export default function AdminRolesPage() {
   const [users, setUsers] = useState<UserWithRoles[]>([])
   const [roles, setRoles] = useState<UserRole[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [selectedRole, setSelectedRole] = useState<string>('all')
-  const [hasPermission, setHasPermission] = useState(false)
   const [adminId, setAdminId] = useState<string>('')
+
+  // TanStack Table 상태
+  const [sorting, setSorting] = useState<SortingState>([])
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
 
   useEffect(() => {
     checkUserPermission()
@@ -54,12 +67,10 @@ export default function AdminRolesPage() {
 
       // 슈퍼관리자는 모든 권한을 가짐
       if (currentAdmin.name === '슈퍼관리자') {
-        setHasPermission(true)
         return
       }
 
       // 다른 관리자들은 기본적으로 역할 관리 권한을 가짐 (임시)
-      setHasPermission(true)
     } catch (error) {
       console.error('Permission check error:', error)
       toast.error('권한 확인에 실패했습니다.')
@@ -141,17 +152,6 @@ export default function AdminRolesPage() {
     }
   }
 
-  const filteredUsers = users.filter(user => {
-    const matchesSearch =
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.phone.includes(searchTerm)
-
-    const matchesRole = selectedRole === 'all' ||
-      user.roles.some(role => role.name === selectedRole)
-
-    return matchesSearch && matchesRole
-  })
-
   const getRoleBadge = (roleName: string) => {
     const roleColors: Record<string, string> = {
       super_admin: 'bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200',
@@ -174,17 +174,111 @@ export default function AdminRolesPage() {
     )
   }
 
-  if (!hasPermission) {
+  // TanStack Table 컬럼 정의
+  const columns: ColumnDef<UserWithRoles>[] = [
+    {
+      accessorKey: 'name',
+      header: '사용자',
+      cell: ({ row }) => (
+        <div>
+          <div className="font-medium text-gray-900">{row.original.name}</div>
+          <div className="text-sm text-gray-500">{row.original.id.substring(0, 8)}...</div>
+        </div>
+      ),
+    },
+    {
+      accessorKey: 'phone',
+      header: '전화번호',
+      cell: ({ row }) => (
+        <span className="text-gray-700">{row.original.phone}</span>
+      ),
+    },
+    {
+      accessorKey: 'roles',
+      header: '현재 역할',
+      cell: ({ row }) => (
+        <div className="flex gap-2">
+          {row.original.roles.map((role) => (
+            <div key={role.id}>
+              {getRoleBadge(role.name)}
+            </div>
+          ))}
+        </div>
+      ),
+    },
+    {
+      id: 'roleChange',
+      header: '역할 변경',
+      cell: ({ row }) => {
+        const isCustomer = row.original.roles.some(role => role.name === 'customer')
+        return isCustomer ? (
+          <div className="text-sm text-gray-500 italic bg-gray-100 px-3 py-1 rounded-md">
+            고객 전용
+          </div>
+        ) : (
+          <Select
+            value={row.original.roles[0]?.id || ''}
+            onValueChange={(value) => handleRoleChange(row.original.id, value)}
+          >
+            <SelectTrigger className="w-40 border-gray-300 text-gray-900 bg-white hover:bg-gray-50 focus:border-blue-500 focus:ring-blue-500">
+              <SelectValue placeholder="역할 선택" />
+            </SelectTrigger>
+            <SelectContent className="bg-white border-gray-200">
+              {roles
+                .filter(role => role.name !== 'customer') // 고객 역할 제외
+                .map(role => (
+                  <SelectItem key={role.id} value={role.id} className="hover:bg-gray-50">
+                    {role.display_name}
+                  </SelectItem>
+                ))}
+            </SelectContent>
+          </Select>
+        )
+      },
+    },
+    {
+      accessorKey: 'createdAt',
+      header: '가입일',
+      cell: ({ row }) => {
+        const date = new Date(row.original.createdAt)
+        const isValidDate = !isNaN(date.getTime())
+
+        return (
+          <span className="text-gray-700">
+            {isValidDate
+              ? date.toLocaleDateString('ko-KR', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
+                })
+              : '날짜 없음'
+            }
+          </span>
+        )
+      },
+    },
+  ]
+
+  // TanStack Table 설정
+  const table = useReactTable({
+    data: users,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    state: {
+      sorting,
+      columnFilters,
+    },
+  })
+
+  if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle className="text-gray-900">권한 없음</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-gray-600">역할 관리 권한이 없습니다.</p>
-          </CardContent>
-        </Card>
+      <div className="text-center py-20">
+        <div className="text-2xl">로딩 중...</div>
       </div>
     )
   }
@@ -193,30 +287,37 @@ export default function AdminRolesPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">사용자 역할 관리</h1>
-        <p className="text-gray-600">사용자별 역할을 관리하고 권한을 설정합니다.</p>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">사용자 권한 관리</h1>
+        <p className="text-gray-600">사용자별 권한 할당 및 관리</p>
       </div>
 
       {/* Filters */}
-      <Card className="bg-white border border-gray-200 shadow-sm">
-        <CardHeader className="bg-gray-50 border-b border-gray-200">
-          <CardTitle className="text-gray-800 text-lg font-semibold">필터</CardTitle>
+      <Card>
+        <CardHeader className="border-b">
+          <CardTitle>검색 및 필터</CardTitle>
         </CardHeader>
-        <CardContent className="p-6">
+        <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <Label htmlFor="search" className="text-gray-700 font-medium mb-2 block">검색</Label>
               <Input
                 id="search"
                 placeholder="이름 또는 전화번호로 검색"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                value={(table.getColumn('name')?.getFilterValue() as string) ?? ''}
+                onChange={(event) =>
+                  table.getColumn('name')?.setFilterValue(event.target.value)
+                }
                 className="border-gray-300 text-gray-900 bg-white focus:border-blue-500 focus:ring-blue-500"
               />
             </div>
             <div>
               <Label htmlFor="role-filter" className="text-gray-700 font-medium mb-2 block">역할</Label>
-              <Select value={selectedRole} onValueChange={setSelectedRole}>
+              <Select
+                value={(table.getColumn('roles')?.getFilterValue() as string) ?? 'all'}
+                onValueChange={(value) => {
+                  table.getColumn('roles')?.setFilterValue(value === 'all' ? '' : value)
+                }}
+              >
                 <SelectTrigger className="border-gray-300 text-gray-900 bg-white focus:border-blue-500 focus:ring-blue-500">
                   <SelectValue placeholder="모든 역할" />
                 </SelectTrigger>
@@ -235,89 +336,93 @@ export default function AdminRolesPage() {
       </Card>
 
       {/* Users Table */}
-      <Card className="bg-white border border-gray-200 shadow-sm">
-        <CardHeader className="bg-gray-50 border-b border-gray-200">
-          <CardTitle className="text-gray-800 text-lg font-semibold">사용자 목록</CardTitle>
+      <Card>
+        <CardHeader className="border-b">
+          <CardTitle>사용자 목록</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
-          {isLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-            </div>
-          ) : filteredUsers.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="text-gray-300 text-6xl mb-4">👥</div>
-              <p className="text-gray-500">사용자가 없습니다.</p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-gray-50 hover:bg-gray-50">
-                    <TableHead className="text-gray-700 font-semibold py-4">사용자</TableHead>
-                    <TableHead className="text-gray-700 font-semibold py-4">전화번호</TableHead>
-                    <TableHead className="text-gray-700 font-semibold py-4">현재 역할</TableHead>
-                    <TableHead className="text-gray-700 font-semibold py-4">역할 변경</TableHead>
-                    <TableHead className="text-gray-700 font-semibold py-4">가입일</TableHead>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id} className="bg-gray-50 hover:bg-gray-50">
+                    {headerGroup.headers.map((header) => (
+                      <TableHead
+                        key={header.id}
+                        className="text-gray-700 font-semibold py-4 cursor-pointer hover:bg-gray-100"
+                        onClick={header.column.getToggleSortingHandler()}
+                      >
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
+                        {{
+                          asc: ' 🔼',
+                          desc: ' 🔽',
+                        }[header.column.getIsSorted() as string] ?? null}
+                      </TableHead>
+                    ))}
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredUsers.map((user) => (
-                    <TableRow key={user.id} className="hover:bg-gray-50 border-b border-gray-100">
-                      <TableCell className="py-4">
-                        <div>
-                          <div className="font-medium text-gray-900">{user.name}</div>
-                          <div className="text-sm text-gray-500">{user.id}</div>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-gray-700 py-4">{user.phone}</TableCell>
-                      <TableCell className="py-4">
-                        <div className="flex gap-2">
-                          {user.roles.map((role) => (
-                            <div key={role.id}>
-                              {getRoleBadge(role.name)}
-                            </div>
-                          ))}
-                        </div>
-                      </TableCell>
-                      <TableCell className="py-4">
-                        {user.roles.some(role => role.name === 'customer') ? (
-                          <div className="text-sm text-gray-500 italic bg-gray-100 px-3 py-1 rounded-md">
-                            고객 전용
-                          </div>
-                        ) : (
-                          <Select
-                            value={user.roles[0]?.id || ''}
-                            onValueChange={(value) => handleRoleChange(user.id, value)}
-                          >
-                            <SelectTrigger className="w-40 border-gray-300 text-gray-900 bg-white hover:bg-gray-50 focus:border-blue-500 focus:ring-blue-500">
-                              <SelectValue placeholder="역할 선택" />
-                            </SelectTrigger>
-                            <SelectContent className="bg-white border-gray-200">
-                              {roles
-                                .filter(role => role.name !== 'customer') // 고객 역할 제외
-                                .map(role => (
-                                  <SelectItem key={role.id} value={role.id} className="hover:bg-gray-50">
-                                    {role.display_name}
-                                  </SelectItem>
-                                ))}
-                            </SelectContent>
-                          </Select>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-gray-700 py-4">
-                        {new Date(user.created_at).toLocaleDateString('ko-KR', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric'
-                        })}
-                      </TableCell>
+                ))}
+              </TableHeader>
+              <TableBody>
+                {table.getRowModel().rows?.length ? (
+                  table.getRowModel().rows.map((row) => (
+                    <TableRow
+                      key={row.id}
+                      className="bg-white hover:bg-gray-50 border-b border-gray-100"
+                    >
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id} className="py-4">
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </TableCell>
+                      ))}
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={columns.length} className="h-24 text-center">
+                      사용자가 없습니다.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Pagination */}
+          <div className="flex items-center justify-between space-x-2 py-4 px-6 border-t border-gray-200">
+            <div className="flex-1 text-sm text-gray-700">
+              총 {table.getFilteredRowModel().rows.length}개 중{' '}
+              {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1}-
+              {Math.min(
+                (table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize,
+                table.getFilteredRowModel().rows.length
+              )}개
             </div>
-          )}
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => table.previousPage()}
+                disabled={!table.getCanPreviousPage()}
+                className="border-gray-300 text-gray-700 bg-white hover:bg-gray-50"
+              >
+                이전
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => table.nextPage()}
+                disabled={!table.getCanNextPage()}
+                className="border-gray-300 text-gray-700 bg-white hover:bg-gray-50"
+              >
+                다음
+              </Button>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>

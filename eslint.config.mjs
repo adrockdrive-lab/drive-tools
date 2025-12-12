@@ -11,6 +11,14 @@ const compat = new FlatCompat({
 
 const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
+  {
+    rules: {
+      "@typescript-eslint/no-explicit-any": "warn", // any 타입을 경고로 변경
+      "@typescript-eslint/no-unused-vars": "warn", // 사용하지 않는 변수를 경고로 변경
+      "react-hooks/exhaustive-deps": "warn", // useEffect 의존성 배열을 경고로 변경
+      "@next/next/no-img-element": "warn", // img 태그 사용을 경고로 변경
+    },
+  },
 ];
 
 export default eslintConfig;

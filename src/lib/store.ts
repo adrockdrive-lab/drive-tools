@@ -165,18 +165,31 @@ export const useAppStore = create<AppStore>()(
         }))
       },
 
-      // Load missions from database
+      // Load missions from database (지점별 필터링 포함)
       loadMissions: async () => {
+        const { user, currentStore } = get()
+        
         try {
-          const { data, error } = await supabase
-            .from('missions')
+          let query = supabase
+            .from('mission_definitions')
             .select('*')
             .eq('is_active', true)
-            .order('id')
+            .order('created_at', { ascending: false })
+
+          // 전역 미션과 사용자 지점 미션만 표시
+          if (user?.storeId || currentStore?.id) {
+            const storeId = user?.storeId || currentStore?.id
+            query = query.or(`is_global.eq.true,store_id.eq.${storeId}`)
+          } else {
+            // 지점 정보가 없으면 전역 미션만
+            query = query.eq('is_global', true)
+          }
+
+          const { data, error } = await query
 
           if (error) throw error
 
-          const missions: Mission[] = data.map(m => ({
+          const missions: Mission[] = (data || []).map(m => ({
             id: m.id,
             title: m.title,
             description: m.description,
@@ -187,8 +200,28 @@ export const useAppStore = create<AppStore>()(
             createdAt: m.created_at
           }))
 
+          // 개인화된 미션 정렬 (참여하지 않은 미션 우선)
+          if (user) {
+            const { userMissions } = get()
+            const completedMissionIds = userMissions
+              .filter(um => um.status === 'completed')
+              .map(um => um.missionId)
+            
+            missions.sort((a, b) => {
+              const aCompleted = completedMissionIds.includes(a.id)
+              const bCompleted = completedMissionIds.includes(b.id)
+              
+              if (aCompleted && !bCompleted) return 1
+              if (!aCompleted && bCompleted) return -1
+              
+              // 보상금액 높은 순으로 정렬
+              return b.rewardAmount - a.rewardAmount
+            })
+          }
+
           set({ missions })
         } catch (error) {
+          console.error('미션 로드 실패:', error)
           set({
             error: error instanceof Error ? error.message : 'Failed to load missions'
           })
@@ -259,7 +292,7 @@ export const useAppStore = create<AppStore>()(
           const paybacks: Payback[] = data.map(p => ({
             id: p.id,
             userId: p.user_id,
-            missionId: p.mission_id,
+            missionId: p.mission_definition_id,
             amount: p.amount,
             status: p.status as PaybackStatus,
             storeId: p.store_id,
@@ -477,3 +510,6 @@ export const useUI = () => useAppStore((state) => ({
   setError: state.setError,
   clearError: state.clearError
 }))
+
+// Alias for V2 pages
+export const useStore = useAppStore

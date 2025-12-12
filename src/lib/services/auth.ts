@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase'
-import { UserRole } from '@/types'
+import { Permission, UserRole } from '@/types'
 
 export interface RegisterData {
   name: string
@@ -54,7 +54,8 @@ export const authService = {
       // 개발용: 콘솔에 코드 출력
       console.log(`[개발용] ${normalizedPhone}로 전송된 인증 코드: ${code}`)
 
-      return { success: true }
+      // 테스트용: UI에서 사용할 수 있도록 코드 반환
+      return { success: true, verificationCode: code }
     } catch (error) {
       console.error('SMS 전송 오류:', error)
       return { success: false, error: 'SMS 전송에 실패했습니다.' }
@@ -330,7 +331,7 @@ export async function isSuperAdmin(): Promise<boolean> {
   const rolesResult = await getUserRoles()
   if (!rolesResult.success || !rolesResult.data) return false
 
-  return rolesResult.data.some(role => role.role_name === 'super_admin')
+  return rolesResult.data.some(role => role.name === 'super_admin')
 }
 
 // 지점장 여부 확인
@@ -338,7 +339,7 @@ export async function isBranchManager(branchId?: string): Promise<boolean> {
   const rolesResult = await getUserRoles()
   if (!rolesResult.success || !rolesResult.data) return false
 
-  const hasBranchManagerRole = rolesResult.data.some(role => role.role_name === 'branch_manager')
+  const hasBranchManagerRole = rolesResult.data.some(role => role.name === 'branch_manager')
 
   if (!hasBranchManagerRole) return false
 
@@ -354,7 +355,7 @@ export async function isStoreManager(storeId?: number): Promise<boolean> {
   const rolesResult = await getUserRoles()
   if (!rolesResult.success || !rolesResult.data) return false
 
-  const hasStoreManagerRole = rolesResult.data.some(role => role.role_name === 'store_manager')
+  const hasStoreManagerRole = rolesResult.data.some(role => role.name === 'store_manager')
 
   if (!hasStoreManagerRole) return false
 

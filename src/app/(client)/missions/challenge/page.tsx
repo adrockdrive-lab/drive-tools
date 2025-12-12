@@ -1,293 +1,252 @@
 'use client'
 
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { missionService } from '@/lib/services/missions'
 import { useAppStore } from '@/lib/store'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
+import { Award, CheckCircle2, Clock, Upload } from 'lucide-react'
 
-export default function ChallengeMissionPage() {
+export default function ChallengePage() {
   const router = useRouter()
-  const { user, missions, userMissions, loadUserMissions, loadPaybacks } = useAppStore()
-  const [loading, setLoading] = useState(true)
-  const [submitting, setSubmitting] = useState(false)
-  const [certificateImage, setCertificateImage] = useState<File | null>(null)
-  const [certificateImageUrl, setCertificateImageUrl] = useState('')
-
-  // 챌린지 미션 찾기
-  const challengeMission = missions.find(m => m.missionType === 'challenge')
-  const userParticipation = userMissions.find(um => um.missionId === challengeMission?.id)
+  const { user } = useAppStore()
+  const [loading, setLoading] = useState(false)
+  const [submitted, setSubmitted] = useState(false)
+  const [studyHours, setStudyHours] = useState('')
+  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [imagePreview, setImagePreview] = useState('')
 
   useEffect(() => {
     if (!user) {
       router.push('/login')
       return
     }
-    setLoading(false)
+
+    // 제출 상태 확인
+    checkSubmissionStatus()
   }, [user, router])
 
-  const handleStartMission = async () => {
-    if (!user || !challengeMission) return
-
+  const checkSubmissionStatus = async () => {
     try {
-      setSubmitting(true)
-      const result = await missionService.startMissionParticipation(user.id, challengeMission.id)
+      // TODO: API 연결
+      // const { data } = await supabase
+      //   .from('mission_participations')
+      //   .select('*')
+      //   .eq('user_id', user!.id)
+      //   .eq('mission_type', 'challenge')
+      //   .single()
 
-      if (result.success) {
-        toast.success('챌린지 미션이 시작되었습니다!')
-        await loadUserMissions()
-        await loadPaybacks()
-      } else {
-        toast.error(result.error || '미션 시작에 실패했습니다.')
-      }
+      // setSubmitted(data?.status === 'submitted' || data?.status === 'verified')
     } catch (error) {
-      console.error('미션 시작 오류:', error)
-      toast.error('미션 시작에 실패했습니다.')
-    } finally {
-      setSubmitting(false)
+      console.error('Error checking submission:', error)
     }
   }
 
-  const handleCompleteMission = async () => {
-    if (!user || !challengeMission) return
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error('파일 크기는 10MB 이하여야 합니다.')
+        return
+      }
+      setImageFile(file)
+      setImagePreview(URL.createObjectURL(file))
+    }
+  }
 
-    if (!certificateImage) {
+  const handleSubmit = async () => {
+    if (!imageFile) {
       toast.error('도장 사진을 업로드해주세요.')
       return
     }
 
+    if (!studyHours || parseInt(studyHours) > 14) {
+      toast.error('학습 시간을 올바르게 입력해주세요 (최대 14시간)')
+      return
+    }
+
+    setLoading(true)
     try {
-      setSubmitting(true)
+      // TODO: API 연결
+      // 1. 이미지 업로드
+      // const { url } = await uploadMissionProof(user!.id, 'challenge', imageFile)
 
-      const proofData = {
-        type: 'challenge',
-        certificateImageUrl: certificateImageUrl,
-        submittedAt: new Date().toISOString()
-      }
+      // 2. 미션 제출
+      // await supabase.from('mission_participations').insert({
+      //   user_id: user!.id,
+      //   mission_type: 'challenge',
+      //   proof_data: { imageUrl: url, studyHours: parseInt(studyHours) },
+      //   status: 'submitted'
+      // })
 
-      const result = await missionService.completeMissionParticipation(
-        user.id,
-        challengeMission.id,
-        proofData
-      )
-
-      if (result.success) {
-        toast.success('재능충 미션이 완료되었습니다!')
-        await loadUserMissions()
-        await loadPaybacks()
-        setCertificateImage(null)
-        setCertificateImageUrl('')
-      } else {
-        toast.error(result.error || '미션 완료에 실패했습니다.')
-      }
+      setSubmitted(true)
+      toast.success('미션을 제출했습니다! 관리자 승인을 기다려주세요.')
     } catch (error) {
-      console.error('미션 완료 오류:', error)
-      toast.error('미션 완료에 실패했습니다.')
+      toast.error('미션 제출에 실패했습니다.')
     } finally {
-      setSubmitting(false)
+      setLoading(false)
     }
-  }
-
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (file) {
-      setCertificateImage(file)
-      // 실제로는 이미지를 서버에 업로드하고 URL을 받아와야 함
-      setCertificateImageUrl(URL.createObjectURL(file))
-    }
-  }
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background p-4">
-        <div className="max-w-2xl mx-auto space-y-6">
-          <div className="animate-pulse">
-            <div className="h-8 bg-secondary rounded mb-4"></div>
-            <div className="h-64 bg-secondary rounded"></div>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  if (!user) {
-    return null
   }
 
   return (
-    <div className="min-h-screen bg-background p-4">
-      <div className="max-w-2xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white p-6">
+      <div className="max-w-4xl mx-auto space-y-6">
         {/* 헤더 */}
-        <div className="flex items-center space-x-3">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => router.push('/dashboard')}
-            className="text-muted-foreground"
-          >
-            ← 대시보드로
+        <div>
+          <Button variant="ghost" onClick={() => router.back()} className="mb-4">
+            ← 뒤로
           </Button>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">재능충</h1>
-            <p className="text-gray-600">합격 등록하고 페이백 받기</p>
-          </div>
+          <h1 className="text-3xl font-bold text-gray-900">14시간 챌린지</h1>
+          <p className="text-gray-600 mt-2">14시간 안에 면허 취득하고 보상을 받으세요!</p>
         </div>
 
-        {challengeMission ? (
-          <Card className="gradient-card border-border">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <span className="text-3xl">🎯</span>
-                  <div>
-                    <CardTitle className="text-black text-xl">
-                      {challengeMission.title}
-                    </CardTitle>
-                    <p className="text-muted-foreground text-sm">
-                      재능충 미션
-                    </p>
-                  </div>
-                </div>
-                <Badge
-                  variant="outline"
-                  className={`${
-                    userParticipation?.status === 'completed'
-                      ? 'bg-green-500/20 text-green-400 border-green-500/30'
-                      : userParticipation?.status === 'in_progress'
-                      ? 'bg-blue-500/20 text-blue-400 border-blue-500/30'
-                      : 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'
-                  }`}
-                >
-                  {userParticipation?.status === 'completed' ? '완료' :
-                   userParticipation?.status === 'in_progress' ? '진행 중' : '대기'}
-                </Badge>
+        {/* 미션 정보 카드 */}
+        <Card className="bg-gradient-to-r from-purple-600 to-pink-600 text-white">
+          <CardContent className="py-6">
+            <h3 className="text-2xl font-bold mb-2">미션 목표</h3>
+            <p className="text-lg">총 학습 시간 14시간 이내 면허 취득</p>
+            <div className="mt-4 flex items-center space-x-4 text-sm">
+              <div className="flex items-center">
+                <Award className="h-4 w-4 mr-1" />
+                <span>+500 XP</span>
               </div>
-            </CardHeader>
-
-            <CardContent className="space-y-6">
-              <div>
-                <h3 className="text-black font-semibold mb-2">미션 설명</h3>
-                <p className="text-muted-foreground">
-                  {challengeMission.description}
-                </p>
+              <div className="flex items-center">
+                <Award className="h-4 w-4 mr-1" />
+                <span>+300 코인</span>
               </div>
+            </div>
+          </CardContent>
+        </Card>
 
-              <div className="bg-green-50 rounded-lg p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-green-600 font-bold text-lg">
-                      2만원
-                    </div>
-                    <div className="text-gray-600 text-sm">
-                      보상 금액
-                    </div>
-                  </div>
-                  <span className="text-3xl">💰</span>
-                </div>
-              </div>
-
-              {!userParticipation && (
-                <Button
-                  onClick={handleStartMission}
-                  disabled={submitting}
-                  className="w-full bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90"
-                >
-                  {submitting ? '시작 중...' : '미션 시작하기'}
-                </Button>
-              )}
-
-              {userParticipation?.status === 'in_progress' && (
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="certificateImage" className="text-black">
-                      도장 사진 업로드
-                    </Label>
-                    <div className="mt-2">
-                      <input
-                        type="file"
-                        id="certificateImage"
-                        accept="image/*"
-                        onChange={handleImageUpload}
-                        className="hidden"
-                      />
-                      <label
-                        htmlFor="certificateImage"
-                        className="cursor-pointer inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                      >
-                        📷 사진 선택
-                      </label>
-                    </div>
-                    {certificateImageUrl && (
-                      <div className="mt-2">
-                        <img
-                          src={certificateImageUrl}
-                          alt="도장 사진"
-                          className="w-32 h-32 object-cover rounded-lg border"
-                        />
-                      </div>
-                    )}
-                    <p className="text-muted-foreground text-xs mt-1">
-                      합격증 또는 도장이 찍힌 사진을 업로드해주세요
-                    </p>
-                  </div>
-                      type="url"
-                      placeholder="https://example.com/certificate"
-                      value={proofUrl}
-                      onChange={(e) => setProofUrl(e.target.value)}
-                      className="bg-secondary/50 border-border text-black mt-1"
-                    />
-                    <p className="text-muted-foreground text-xs mt-1">
-                      학습 증명서나 인증서 URL을 입력해주세요
-                    </p>
-                  </div>
-
-                  <Button
-                    onClick={handleCompleteMission}
-                    disabled={submitting || !proofUrl.trim() || !studyHours.trim()}
-                    className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-500/90 hover:to-emerald-600/90"
-                  >
-                    {submitting ? '완료 중...' : '미션 완료하기'}
-                  </Button>
-                </div>
-              )}
-
-              {userParticipation?.status === 'completed' && (
-                <div className="text-center py-4">
-                  <div className="text-4xl mb-2">✅</div>
-                  <h3 className="text-black font-semibold mb-1">미션 완료!</h3>
-                  <p className="text-muted-foreground">
-                    축하합니다! 챌린지 미션을 성공적으로 완료했습니다.
-                  </p>
-                  <div className="mt-4">
-                    <Button
-                      onClick={() => router.push('/dashboard')}
-                      variant="outline"
-                      className="border-border text-black hover:bg-secondary"
-                    >
-                      대시보드로 돌아가기
-                    </Button>
-                  </div>
-                </div>
-              )}
+        {/* 제출 폼 또는 상태 */}
+        {submitted ? (
+          <Card>
+            <CardContent className="py-12 text-center">
+              <CheckCircle2 className="h-16 w-16 text-green-600 mx-auto mb-4" />
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">제출 완료!</h3>
+              <p className="text-gray-600 mb-4">관리자 검토 후 승인될 예정입니다.</p>
+              <Button variant="outline" onClick={() => router.push('/dashboard')}>
+                대시보드로 돌아가기
+              </Button>
             </CardContent>
           </Card>
         ) : (
-          <Card className="gradient-card border-border">
-            <CardContent className="text-center py-8">
-              <div className="text-4xl mb-4">🎯</div>
-              <h3 className="text-lg font-semibold text-black mb-2">
-                진행 가능한 챌린지 미션이 없습니다
-              </h3>
-              <p className="text-muted-foreground">
-                새로운 챌린지 미션이 곧 추가될 예정입니다.
-              </p>
-            </CardContent>
-          </Card>
+          <>
+            {/* 제출 폼 */}
+            <Card>
+              <CardHeader>
+                <CardTitle>미션 제출</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div>
+                  <Label htmlFor="image">도장 사진 업로드</Label>
+                  <div className="mt-2">
+                    <input
+                      type="file"
+                      id="image"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      className="hidden"
+                    />
+                    <label
+                      htmlFor="image"
+                      className="cursor-pointer inline-flex items-center px-4 py-3 border border-gray-300 rounded-lg shadow-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                    >
+                      <Upload className="h-5 w-5 mr-2" />
+                      사진 선택
+                    </label>
+                  </div>
+                  {imagePreview && (
+                    <div className="mt-4">
+                      <img
+                        src={imagePreview}
+                        alt="Preview"
+                        className="w-full max-w-md h-64 object-cover rounded-lg border-2 border-purple-200"
+                      />
+                    </div>
+                  )}
+                  <p className="text-sm text-gray-500 mt-2">
+                    합격증 또는 도장이 찍힌 사진을 업로드해주세요 (최대 10MB)
+                  </p>
+                </div>
+
+                <div>
+                  <Label htmlFor="hours">총 학습 시간 (시간)</Label>
+                  <Input
+                    id="hours"
+                    type="number"
+                    min="1"
+                    max="14"
+                    placeholder="예: 12"
+                    value={studyHours}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value)
+                      if (val > 14) {
+                        toast.error('학습 시간은 최대 14시간까지 입력 가능합니다.')
+                        setStudyHours('14')
+                      } else {
+                        setStudyHours(e.target.value)
+                      }
+                    }}
+                    className="mt-2"
+                  />
+                  <p className="text-sm text-gray-500 mt-2">
+                    총 학습 시간을 입력해주세요 (최대 14시간)
+                  </p>
+                </div>
+
+                <Button
+                  onClick={handleSubmit}
+                  disabled={loading || !imageFile || !studyHours}
+                  className="w-full bg-purple-600 hover:bg-purple-700"
+                  size="lg"
+                >
+                  {loading ? '제출 중...' : '미션 제출하기'}
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* 미션 가이드 */}
+            <Card>
+              <CardHeader>
+                <CardTitle>미션 가이드</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex items-start space-x-3">
+                    <Clock className="h-5 w-5 text-purple-600 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="font-medium">1. 학습 시간 기록</p>
+                      <p className="text-sm text-gray-600">
+                        총 학습 시간이 14시간 이내인지 확인하세요
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start space-x-3">
+                    <Upload className="h-5 w-5 text-purple-600 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="font-medium">2. 증빙 자료 준비</p>
+                      <p className="text-sm text-gray-600">
+                        합격증 또는 도장이 찍힌 사진을 준비하세요
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start space-x-3">
+                    <CheckCircle2 className="h-5 w-5 text-purple-600 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="font-medium">3. 미션 제출</p>
+                      <p className="text-sm text-gray-600">
+                        모든 정보를 입력하고 제출 버튼을 누르세요
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </>
         )}
       </div>
     </div>

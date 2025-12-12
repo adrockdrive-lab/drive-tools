@@ -3,6 +3,8 @@
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { HoverScale, SlideIn, TapEffect, Bounce } from '@/components/animations/MicroInteractions'
+import { Spinner } from '@/components/animations/LoadingAnimations'
 import { type Mission } from '@/types'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
@@ -98,40 +100,64 @@ export function MissionCard({ mission }: MissionCardProps) {
   const getActionButton = () => {
     if (mission.status === 'completed') {
       return (
-        <Button disabled className="w-full bg-green-500/20 text-green-400 border-green-500/30">
-          ✅ 완료됨
-        </Button>
+        <Bounce trigger={mission.status === 'completed'}>
+          <Button disabled className="w-full bg-gray-500 text-white font-bold border-green-500/30">
+            ✅ 완료됨
+          </Button>
+        </Bounce>
       )
     }
 
     if (mission.status === 'pending') {
       return (
-        <Button
-          onClick={(e) => {
-            e.stopPropagation()
-            handleAction()
-          }}
-          disabled={isLoading}
-          className="w-full bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90"
-        >
-          {isLoading ? '시작 중...' : '미션 시작'}
-        </Button>
+        <HoverScale scale={1.02}>
+          <TapEffect>
+            <Button
+              onClick={(e) => {
+                e.stopPropagation()
+                handleAction()
+              }}
+              disabled={isLoading}
+              className="w-full bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90"
+            >
+              {isLoading ? (
+                <div className="flex items-center space-x-2">
+                  <Spinner size="sm" color="white" />
+                  <span>시작 중...</span>
+                </div>
+              ) : (
+                '미션 시작'
+              )}
+            </Button>
+          </TapEffect>
+        </HoverScale>
       )
     }
 
     if (mission.status === 'in_progress') {
       return (
-        <Button
-          onClick={(e) => {
-            e.stopPropagation()
-            handleAction()
-          }}
-          disabled={isLoading}
-          variant="outline"
-          className="w-full border-border text-black hover:bg-secondary"
-        >
-          {isLoading ? '완료 중...' : '미션 완료'}
-        </Button>
+        <HoverScale scale={1.02}>
+          <TapEffect>
+            <Button
+              onClick={(e) => {
+                e.stopPropagation()
+                handleAction()
+              }}
+              disabled={isLoading}
+              variant="outline"
+              className="w-full border-border text-black hover:bg-secondary"
+            >
+              {isLoading ? (
+                <div className="flex items-center space-x-2">
+                  <Spinner size="sm" color="currentColor" />
+                  <span>완료 중...</span>
+                </div>
+              ) : (
+                '미션 완료'
+              )}
+            </Button>
+          </TapEffect>
+        </HoverScale>
       )
     }
 
@@ -139,65 +165,86 @@ export function MissionCard({ mission }: MissionCardProps) {
   }
 
   return (
-    <Card
-      className="gradient-card border-border hover:border-primary/50 transition-all duration-300 cursor-pointer"
-      onClick={() => {
-        if (mission.status === 'pending' || mission.status === 'in_progress') {
-          const missionPath = getMissionPath(mission.missionType)
-          router.push(missionPath)
-        }
-      }}
-    >
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between">
-          <div className="flex items-center space-x-2">
-            <span className="text-2xl">{getMissionIcon(mission.missionType)}</span>
-            <div>
-              <CardTitle className="text-black text-base">
-                {mission.title}
-              </CardTitle>
-              <p className="text-muted-foreground text-xs">
-                {mission.missionType} 미션
-              </p>
-            </div>
-          </div>
-          <Badge
-            variant="outline"
-            className={`text-xs ${getStatusColor(mission.status || 'pending')}`}
-          >
-            {getStatusText(mission.status || 'pending')}
-          </Badge>
-        </div>
-      </CardHeader>
-
-      <CardContent className="space-y-4">
-        <p className="text-muted-foreground text-sm line-clamp-2">
-          {mission.description}
-        </p>
-
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <span className="text-2xl">💰</span>
-            <div>
-              <div className="text-black font-bold">
-                {mission.rewardAmount.toLocaleString()}원
+    <SlideIn direction="up" delay={0} threshold={0.1}>
+      <HoverScale scale={1.03} disabled={isLoading}>
+        <TapEffect
+          onTap={() => {
+            if (mission.status === 'pending' || mission.status === 'in_progress') {
+              const missionPath = getMissionPath(mission.missionType)
+              router.push(missionPath)
+            }
+          }}
+        >
+          <Card className="gradient-card border-border hover:border-primary/50 transition-all duration-300 cursor-pointer">
+            <CardHeader className="pb-3">
+              <div className="flex items-start justify-between">
+                <div className="flex items-center space-x-2">
+                  <HoverScale scale={1.2}>
+                    <span className="text-2xl transition-transform duration-200">
+                      {getMissionIcon(mission.missionType)}
+                    </span>
+                  </HoverScale>
+                  <div>
+                    <CardTitle className="text-black text-base">
+                      {mission.title}
+                    </CardTitle>
+                    <p className="text-muted-foreground text-xs">
+                      {mission.missionType} 미션
+                    </p>
+                  </div>
+                </div>
+                <SlideIn direction="left" delay={0.1}>
+                  <Badge
+                    variant="outline"
+                    className={`text-xs transition-all duration-200 ${getStatusColor(mission.status || 'pending')}`}
+                  >
+                    {getStatusText(mission.status || 'pending')}
+                  </Badge>
+                </SlideIn>
               </div>
-              <div className="text-muted-foreground text-xs">
-                보상 금액
-              </div>
-            </div>
-          </div>
+            </CardHeader>
 
-          {mission.status === 'in_progress' && (
-            <div className="flex items-center space-x-2">
-              <ProgressRing progress={50} size="md" />
-              <span className="text-muted-foreground text-xs">진행률</span>
-            </div>
-          )}
-        </div>
+            <CardContent className="space-y-4">
+              <SlideIn direction="up" delay={0.2}>
+                <p className="text-muted-foreground text-sm line-clamp-2">
+                  {mission.description}
+                </p>
+              </SlideIn>
 
-        {getActionButton()}
-      </CardContent>
-    </Card>
+              <SlideIn direction="up" delay={0.3}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <HoverScale scale={1.1}>
+                      <span className="text-2xl">💰</span>
+                    </HoverScale>
+                    <div>
+                      <div className="text-black font-bold">
+                        {mission.rewardAmount ? mission.rewardAmount.toLocaleString() : '0'}원
+                      </div>
+                      <div className="text-muted-foreground text-xs">
+                        보상 금액
+                      </div>
+                    </div>
+                  </div>
+
+                  {mission.status === 'in_progress' && (
+                    <SlideIn direction="right" delay={0.4}>
+                      <div className="flex items-center space-x-2">
+                        <ProgressRing progress={50} size="md" />
+                        <span className="text-muted-foreground text-xs">진행률</span>
+                      </div>
+                    </SlideIn>
+                  )}
+                </div>
+              </SlideIn>
+
+              <SlideIn direction="up" delay={0.4}>
+                {getActionButton()}
+              </SlideIn>
+            </CardContent>
+          </Card>
+        </TapEffect>
+      </HoverScale>
+    </SlideIn>
   )
 }
